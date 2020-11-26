@@ -67,7 +67,7 @@ inline static bool is_bin(char c){
     return c == '1' || c == '0';
 }
 inline static bool is_numeric(char c){
-    return '1' <= c && c <= '9';
+    return '0' <= c && c <= '9';
 }
 inline static bool is_hex(char c){
     return is_numeric || ('a' <= c && c <='f') || ('A' <= c && c <= 'F');
@@ -81,7 +81,7 @@ uint32_t Scanner::const_line(string::iterator& it, string::iterator end){
     str_val += *it;
 
     it++;
-    if(it == end) return stoi(str_val);
+    if(it == end) return stol(str_val);
     
     int valBase = 0; // 0 is for dec, 1 for hex, 2 for bin
 
@@ -94,7 +94,7 @@ uint32_t Scanner::const_line(string::iterator& it, string::iterator end){
         else if(*it == ' '){
             expectWhiteSpace(it, end);
             if(error) return 0;
-            else return stoi(str_val);
+            else return stol(str_val);
         }
         else{
             string it_str = string() + *it;
@@ -103,7 +103,7 @@ uint32_t Scanner::const_line(string::iterator& it, string::iterator end){
         }
     }
 
-    for(it++; it != end; it++){
+    for(it+=(valBase!=0); it != end; it++){
         bool is_valid = false;
 
         switch (valBase)
@@ -135,7 +135,7 @@ uint32_t Scanner::const_line(string::iterator& it, string::iterator end){
     switch (valBase)
     {
     case 0:
-        return stoi(str_val);
+        return stol(str_val);
         break;
     case 1:{
         uint32_t out;
@@ -174,7 +174,7 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
     it++;
     if(comma_terminated ? *it == ',' : (it == end || *it == ' ')){
         if(comma_terminated) it++;
-        return stoi(reg_str);
+        return stol(reg_str);
     }
     if(!is_numeric(*it)){
         string it_str = string() + *it;
@@ -192,7 +192,7 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
         return 0;
     }
     if(comma_terminated) it++;
-    uint8_t reg_num = stoi(reg_str);
+    uint8_t reg_num = stol(reg_str);
     if(reg_num > 31){
         errorMsg("Register numbers range between 0-31, found '" + to_string(reg_num) + "'.");
         return 0;

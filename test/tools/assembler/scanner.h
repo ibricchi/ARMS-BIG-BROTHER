@@ -4,31 +4,42 @@
 
 #include <unordered_map>
 #include <vector>
+#include <string>
 
 struct Token{
     // type of token
-    bool is_operator;
+    std::string name;
 
     // token data
     uint32_t data;
 
     // initializer
-    Token(bool _is_operator, uint32_t);
+    Token(std::string, uint32_t);
 
     // helper functions
-    int get_reg(int);
-    uint16_t get_imm();
+    uint32_t get_range(int, int);
 };
 
 class Scanner{
 private:
-    static std::unordered_map<std::string, uint16_t> op_map;
-    static std::unordered_map<std::string, uint> reg_map;
+    uint32_t line;
+    uint32_t memLine;
+    static const std::unordered_map<std::string, uint8_t> op_map;
+    static const std::unordered_map<std::string, int> reg_map;
+    std::vector<Token> labels;
     std::vector<Token> tokens;
+
+    uint32_t const_line(std::string::iterator, std::string::iterator);
+    uint32_t instr_line(std::string::iterator, std::string::iterator);
+
 public:
     Scanner();
+    
+    bool error;
+    
     void reset();
-    void scanLine();
+    void scanLine(std::string);
+    std::vector<Token>* getLabelsAddr();
     std::vector<Token>* getTokensAddr();
 };
 

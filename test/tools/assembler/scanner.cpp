@@ -6,9 +6,14 @@
 using namespace std;
 
 // Token Stuff
-Token::Token(string _name, uint32_t _data){
+Token::Token(string _name, uint32_t _data, uint32_t _line){
     name = _name;
     data = _data;
+
+    startIn = 0;
+    label = "";
+
+    line = _line;
 }
 uint32_t Token::get_range(int l, int r){
     return (data<<l)>>(31-r);
@@ -72,7 +77,7 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
 };
 
 void Scanner::reset(){
-    line = 0;
+    line = 1;
     memLine = 0;
     labels = vector<Token>();
     tokens = vector<Token>();
@@ -299,7 +304,7 @@ void Scanner::scanLine(string in){
     auto it = in.begin();
     // if first thing is a constant
     if(is_numeric(*it)){
-        tokens.push_back({"CONST", const_line(it, in.end())});
+        tokens.push_back({"CONST", const_line(it, in.end()), line});
         line++;
         memLine++;
         return;
@@ -308,14 +313,14 @@ void Scanner::scanLine(string in){
         // if first thing is an instr
         if(str.size() > 0 && (*it) == ' '){
             skipWhiteSpace(it, in.end());
-            tokens.push_back({str, instr_line(str, it, in.end())});
+            tokens.push_back({str, instr_line(str, it, in.end()), line});
             memLine++;
             line++;
             return;
         }
         // if first thing is a label
         if((*it) == ':'){
-            labels.push_back(Token(str, memLine));
+            labels.push_back({str, memLine, line});
             str = "";
         }
         // if we don't know what the first thing is yet
@@ -329,6 +334,10 @@ void Scanner::scanLine(string in){
         return;
     }
     line++;
+}
+
+vector<Token>* Scanner::getLabelsAddr(){
+    return &labels;
 }
 
 vector<Token>* Scanner::getTokensAddr(){

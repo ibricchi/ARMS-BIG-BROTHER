@@ -32,7 +32,4 @@
 *.app
 
 # Custom
-.vscode/launch.json
-.vscode/settings.json
-.vscode/tasks.json
-test/tools/assembler/assembler
+.vscode/

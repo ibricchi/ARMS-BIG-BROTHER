@@ -13,8 +13,15 @@ struct Token{
     // token data
     uint32_t data;
 
+    // missing data (in case of label)
+    uint8_t startIn;
+    std::string label;
+
+    // debug data
+    uint32_t line;
+
     // initializer
-    Token(std::string, uint32_t);
+    Token(std::string, uint32_t, uint32_t);
 
     // helper functions
     uint32_t get_range(int, int);

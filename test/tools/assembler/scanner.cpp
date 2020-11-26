@@ -29,48 +29,48 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"ADDU",    0b100001},
     {"AND",     0b100100},
     {"ANDI",    0b001100},
-    {"BEQ",     0},
-    {"BGEZ",    0},
-    {"BGEZAL",  0},
-    {"BGTZ",    0},
-    {"BLEZ",    0},
-    {"BLTZ",    0},
-    {"BLTZAL",  0},
-    {"BNE",     0},
-    {"DIV",     0},
-    {"DIVU",    0},
-    {"J",       0},
-    {"JALR",    0},
-    {"JAL",     0},
-    {"JR",      0},
-    {"LB",      0},
-    {"LBU",     0},
-    {"LH",      0},
-    {"LHU",     0},
-    {"LUI",     0},
-    {"LW",      0},
-    {"LWL",     0},
-    {"LWR",     0},
-    {"MTHI",    0},
-    {"MTLO",    0},
-    {"MULT",    0},
-    {"MULTU",   0},
+    {"BEQ",     0b000100}, // Branch
+    {"BGEZ",    0b00001}, // Other BranchZ (000001)
+    {"BGEZAL",  0b10001}, // Other BranchZ (000001)
+    {"BGTZ",    0b000111}, // BranchZ    I think i could combine them if I increase this to uint16_t
+    {"BLEZ",    0b000110}, // BranchZ
+    {"BLTZ",    0b000001}, // BranchZ
+    {"BLTZAL",  0b10000}, // Other BranchZ (000001)
+    {"BNE",     0b000101}, // Branch
+    {"DIV",     0b011010},
+    {"DIVU",    0b011011},
+    {"J",       0b000010}, // Jump
+    {"JALR",    0b001001}, // JumpR
+    {"JAL",     0b000011}, // Jump
+    {"JR",      0b001000},
+    {"LB",      0b100000}, // LoadStore
+    {"LBU",     0b100100}, // LoadStore
+    {"LH",      0b100001}, // LoadStore
+    {"LHU",     0b100101}, // LoadStore
+    {"LUI",     0b011001}, // LoadI
+    {"LW",      0b100011}, // LoadStore
+    {"LWL",     0b100010}, // NEED TO FIGURE OUT !TODO
+    {"LWR",     0b100110}, // NEED TO FIGURE OUT ASWELL SAME AS ABOVE base rt offset 5 5 16
+    {"MTHI",    0b010001}, // MoveTo
+    {"MTLO",    0b010011}, // MoveTo
+    {"MULT",    0b011000},
+    {"MULTU",   0b011001},
     {"OR",      0b100101},
     {"ORI",     0b001101},
-    {"SB",      0},
-    {"SH",      0},
-    {"SLL",     0},
-    {"SLLV",    0},
+    {"SB",      0b101000}, // LoadStore
+    {"SH",      0b101001}, // LoadStore
+    {"SLL",     0b000000}, // Shift
+    {"SLLV",    0b000100}, // ShiftV
     {"SLT",     0b101010},
     {"SLTI",    0b001010},
     {"SLTIU",   0b001011},
     {"SLTU",    0b101011},
-    {"SRA",     0},
-    {"SRAV",    0},
-    {"SRL",     0},
-    {"SRLV",    0},
+    {"SRA",     0b000011}, // Shift
+    {"SRAV",    0b000111}, // ShiftV
+    {"SRL",     0b000010}, // Shit
+    {"SRLV",    0b000110}, // ShiftV
     {"SUBU",    0b100011},
-    {"SW",      0},
+    {"SW",      0b101011}, // LoadStore
     {"XOR",     0b100110},
     {"XORI",    0b001110},
 };
@@ -270,10 +270,11 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     uint32_t out = 0;
     switch (op)
     {
-    // 3 register expressions
+    // ArithLog
     case 0b100001: // ADD
     case 0b100100: // AND
     case 0b100101: // OR
+    case 0b000100: // SLLV
     case 0b101010: // SLT
     case 0b101011: // SLTU
     case 0b100011: // SUBU
@@ -307,7 +308,61 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         out = out << 11 | op;
         break;
     }
-    // 2 reg and imm
+    // DivMult
+    case 0b011010: // DIV
+    case 0b011011: // DIVU
+    case 0b011000: // MULT
+    case 0b011001: // MULTU
+    {
+        uint8_t rs = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        if(error) return 0;
+        uint8_t rt = read_reg(it, end, false);
+        if(error) return 0;
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out |= rs;
+        out = out << 5 | rt;
+        out = out << 16 | op;
+        break;
+    }
+    // // Shift
+    // case :{
+
+    // }
+    // // ShiftV
+    // case :{
+
+    // }
+    // JumpR
+    case 0b001000: // JR
+    {
+        uint8_t rs = read_reg(it, end, false);
+        if(error) return 0;
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out |= rs;
+        out = out << 21 | op;
+        break;
+    }
+    // // MoveFrom
+    // case :{
+        
+    // }
+    // // MoveTo
+    // case :{
+
+    // }
+    // ArithLogI
     case 0b001001: // ADDIU
     case 0b001100: // ANDI
     case 0b001101: // ORI
@@ -341,6 +396,26 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         out = out << 16 | imm;
         break;
     }
+    // // LoadI
+    // case :{
+
+    // }
+    // // Branch
+    // case :{
+
+    // }
+    // // BranchZ
+    // case :{
+
+    // }
+    // // LoadStore
+    // case :{
+
+    // }
+    // // Jump
+    // case :{
+
+    // }
     default:
         errorMsg("Instruction '" + instr + "' has not yet been implemented, but should exist.");
         return 0;

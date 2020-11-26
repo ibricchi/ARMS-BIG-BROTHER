@@ -3,7 +3,6 @@
 #include <unordered_map>
 
 #include <scanner.h>
-#include <compiler.h>
 
 using namespace std;
 

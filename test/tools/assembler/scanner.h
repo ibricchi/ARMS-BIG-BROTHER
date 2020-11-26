@@ -3,6 +3,7 @@
 #define scanner_h
 
 #include <unordered_map>
+#include <vector>
 
 struct Token{
     // type of token
@@ -15,11 +16,9 @@ struct Token{
     Token(bool _is_operator, uint32_t);
 
     // helper functions
-    int get_reg_1();
-    int get_reg_2();
-    int get_reg_3();
-    int get_imm();
-}
+    int get_reg(int);
+    uint16_t get_imm();
+};
 
 class Scanner{
 private:
@@ -31,6 +30,6 @@ public:
     void reset();
     void scanLine();
     std::vector<Token>* getTokensAddr();
-}
+};
 
 #endif

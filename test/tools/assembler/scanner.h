@@ -29,8 +29,12 @@ private:
     std::vector<Token> labels;
     std::vector<Token> tokens;
 
+    void errorMsg(string);
+    void expectWhiteSpace(std::string::iterator, std::string::iterator);
+
     uint32_t const_line(std::string::iterator, std::string::iterator);
-    uint32_t instr_line(std::string::iterator, std::string::iterator);
+    uint8_t read_reg(std::string::iterator, std::string::iterator, bool);
+    uint32_t instr_line(std::string, std::string::iterator, std::string::iterator);
 
 public:
     Scanner();

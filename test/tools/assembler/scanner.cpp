@@ -35,6 +35,23 @@ void Scanner::reset(){
     tokens = vector<Token>();
 }
 
+void Scanner::errorMsg(string msg){
+    error = true;
+    cerr << "[Line " << line << "] " << msg << endl;
+}
+void Scanner::expectWhiteSpace(string::iterator it, string::iterator end){
+    bool allSpaces = true;
+    string msg = "";
+    while(it != end){
+        allSpaces &= (*it == ' ');
+        msg += *it;
+    }
+    if(!allSpaces){
+        error = true;
+        errorMsg("Expected whitespace, found '" + msg + "' instead.");
+    }
+}
+
 inline static bool is_alpha(char c){
     return ('a' <= c && c <='z') || ('A' <= c && c <= 'Z');
 }
@@ -45,7 +62,7 @@ inline static bool is_numeric(char c){
     return '1' <= c && c <= '9';
 }
 inline static bool is_hex(char c){
-    return is_numeric || ('a' <= c && c <='f') || ('A' <= c && c <= 'F')
+    return is_numeric || ('a' <= c && c <='f') || ('A' <= c && c <= 'F');
 }
 inline static bool is_alpha_numeric(char c){
     return is_alpha(c) || is_numeric(c) || (c == '_') ;
@@ -67,20 +84,13 @@ uint32_t Scanner::const_line(string::iterator it, string::iterator end){
         else if(*it == 'x' || *it == 'X') valBase = 1;
         else if(*it == 'b' || *it == 'B') valBase = 2;
         else if(*it == ' '){
-            bool allSpaces = true;
-            while(it != end){
-                allSpaces &= (*it == ' ');
-            }
-            if(!allSpaces){
-                error = true;
-                cerr << "[Line " << line << "] Constants can only be decimal hex or binary numbers.";
-                return 0;
-            }
-            return stoi(str_val);
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+            else return stoi(str_val);
         }
         else{
-            error = true;
-            cerr << "[Line " << line << "] Unexpected character '" << *it << "' in constant.";
+            string it_str = "" + *it;
+            errorMsg("Unexpected character '" + it_str + "' in constant.");
             return 0;
         }
     }
@@ -103,18 +113,11 @@ uint32_t Scanner::const_line(string::iterator it, string::iterator end){
 
         if(!is_valid){
             if(*it == ' '){
-                bool allSpaces = true;
-                while(it != end){
-                    allSpaces &= (*it == ' ');
-                }
-                if(!allSpaces){
-                    error = true;
-                    cerr << "[Line " << line << "] Constants can only be decimal hex or binary numbers.";
-                    return 0;
-                }
+                expectWhiteSpace(it, end);
+                if(error) return 0;
             }else{
-                error = true;
-                cerr << "[Line " << line << "] Unexpected character '" << *it << "' in constant.";
+                string it_str = "" + *it;
+                errorMsg("Unexpected character '" + it_str + "' in constant.");
                 return 0;
             }
         }
@@ -143,22 +146,107 @@ uint32_t Scanner::const_line(string::iterator it, string::iterator end){
     }
 
 }
-uint32_t Scanner::instr_line(string::iterator it, string::iterator end){
-    
+uint8_t Scanner::read_reg(string::iterator it, string::iterator end, bool comma_terminated){
+    if(*it != '$'){
+        errorMsg("Expected a register.");
+        return 0;
+    }
+    it++;
+    if(it != end){
+        errorMsg("Expected register number, reached end of line instead.");
+        return 0;
+    }
+    if(!is_numeric(*it)){
+        string it_str = "" + *it;
+        errorMsg("Expected integer found '" + it_str + "' instead.");
+        return 0;
+    }
+    string reg_str = "";
+    if(is_numeric(*it)) reg_str += *it;
+    it++;
+    if(comma_terminated ? *it == ',' : (it == end || *it == ' ')) return stoi(reg_str);
+    if(!is_numeric(*it)){
+        string it_str = "" + *it;
+        errorMsg("Expected integer found '" + it_str + "' instead.");
+        return 0;
+    }
+    reg_str += *it;
+    it++;
+    if(comma_terminated ? *it != ',' : (it != end && *it != ' ')){
+        string it_str = "" + *it;
+        if(comma_terminated)
+            errorMsg("Expected comma, found '" + it_str + "' instead.");
+        else
+            errorMsg("Expected space or end of line, found '" + it_str + "' instead.");
+        return 0;
+    }
+    return stoi(reg_str);
+}
+uint32_t Scanner::instr_line(string instr, string::iterator it, string::iterator end){
+    if(op_map.find(instr) == op_map.end()){
+        errorMsg("Unkown instruction '" + instr + "'.");
+        return 0;
+    }
+    uint8_t op = op_map.at(instr);
+    uint32_t out = 0;
+    switch (op)
+    {
+    // 3 register expressions
+    case 0b10001: // ADD
+        uint8_t rs = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        uint8_t rt = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        uint8_t rd = read_reg(it, end, false);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        expectWhiteSpace(it, end);
+        if(error) return 0;
+        out |= rs;
+        out = out << 5 | rt;
+        out = out << 5 | rd;
+        out = out << 10 | op;
+        break;
+        
+    // imediate expressions
+    // case 0b001000: // ADDIU
+    //     break;
+    default:
+        errorMsg("Instruction '" + instr + "' has not yet been implemented, but should exist.");
+        return 0;
+    }
+    return out;
 }
 
-void Scanner::scanLine(string line){
+void Scanner::scanLine(string in){
     string str = "";
 
-    auto it = line.begin();
+    auto it = in.begin();
     // if first thing is a constant
     if(!is_numeric(*it)){
-        tokens.push_back({"CONST", const_line(it, line.end())});
+        tokens.push_back({"CONST", const_line(it, in.end())});
+        line++;
+        memLine++;
+        return;
     }
-    for(; it != line.end(); it++){
+    for(; it != in.end(); it++){
         // if first thing is an instr
         if(str.size() > 0 && (*it) == ' '){
-            tokens.push_back({str, instr_line(it, line.end())});
+            it++;
+            tokens.push_back({str, instr_line(str, it, in.end())});
+            memLine++;
+            line++;
             return;
         }
         // if first thing is a label
@@ -170,9 +258,13 @@ void Scanner::scanLine(string line){
         if(is_alpha_numeric(*it)){
             str += *it;
         }
-        
     }
-    //!TODO should never reach this point
+    if(str.size() != 0){
+        errorMsg("Unexpected token '" + str + "'.");
+        line++;
+        return;
+    }
+    line++;
 }
 
 vector<Token>* Scanner::getTokensAddr(){

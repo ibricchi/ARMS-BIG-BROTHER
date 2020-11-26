@@ -2,7 +2,7 @@
 
 SOURCE_DIRECTORY="$1"
 INSTRUCTION="${2:-ALL}" # Run all testcases if no instruction is specified
-CPU_VARIANT="Bus"
+CPU_VARIANT="bus"
 
 TESTCASES="./assembly/*.asm"
 

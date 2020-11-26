@@ -25,10 +25,10 @@ Scanner::Scanner(){
 }
 const unordered_map<string, uint8_t> Scanner::op_map = {
     //{OP_NAME, Special, OPCODE, RS, RT, RD, IMM}
-    {"ADDIU",   0},
+    {"ADDIU",   0b001001},
     {"ADDU",    0b100001},
     {"AND",     0b100100},
-    {"ANDI",    0},
+    {"ANDI",    0b001100},
     {"BEQ",     0},
     {"BGEZ",    0},
     {"BGEZAL",  0},
@@ -56,24 +56,23 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"MULT",    0},
     {"MULTU",   0},
     {"OR",      0b100101},
-    {"ORI",     0},
+    {"ORI",     0b001101},
     {"SB",      0},
     {"SH",      0},
     {"SLL",     0},
     {"SLLV",    0},
     {"SLT",     0b101010},
-    {"SLTI",    0},
-    {"SLTIU",   0},
+    {"SLTI",    0b001010},
+    {"SLTIU",   0b001011},
     {"SLTU",    0b101011},
     {"SRA",     0},
     {"SRAV",    0},
     {"SRL",     0},
     {"SRLV",    0},
-    {"SUBIO",   0}, // not in specs
     {"SUBU",    0b100011},
     {"SW",      0},
     {"XOR",     0b100110},
-    {"XORI",    0},
+    {"XORI",    0b001110},
 };
 
 void Scanner::reset(){
@@ -86,7 +85,10 @@ void Scanner::reset(){
 
 void Scanner::errorMsg(string msg){
     error = true;
-    cerr << "[Line " << line << "] " << msg << endl;
+    cerr << "Error: [Line " << line << "] " << msg << endl;
+}
+void Scanner::warnMsg(string msg){
+    cerr << "Warning: [Line " << line << "] " << msg << endl;
 }
 void Scanner::expectWhiteSpace(string::iterator& it, string::iterator end){
     bool allSpaces = true;
@@ -245,6 +247,20 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
     }
     return reg_num;
 }
+
+uint16_t Scanner::read_imm(string::iterator& it, string::iterator end){
+    if(!is_numeric(*it)){
+        errorMsg("Immediate parameter expects a constant.");
+        return 0;
+    }
+    uint32_t imm_32 = const_line(it, end);
+    uint16_t imm_16 = imm_32;
+    if(imm_16 != imm_32){
+        warnMsg("Imediate constant is greater than 16bits");
+    }
+    return imm_32;
+}
+
 uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterator end){
     if(op_map.find(instr) == op_map.end()){
         errorMsg("Unkown instruction '" + instr + "'.");
@@ -291,6 +307,40 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         out = out << 11 | op;
         break;
     }
+    // 2 reg and imm
+    case 0b001001: // ADDIU
+    case 0b001100: // ANDI
+    case 0b001101: // ORI
+    case 0b001010: // SLTI
+    case 0b001011: // SLTIU
+    case 0b001110: // XORI
+    {
+        uint8_t rs = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        uint8_t rt = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        uint16_t imm = read_imm(it, end);
+        if(error) return 0;
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out |= op;
+        out = out << 5 | rs;
+        out = out << 5 | rt;
+        out = out << 16 | imm;
+        break;
+    }
     default:
         errorMsg("Instruction '" + instr + "' has not yet been implemented, but should exist.");
         return 0;
@@ -302,13 +352,6 @@ void Scanner::scanLine(string in){
     string str = "";
 
     auto it = in.begin();
-    // if first thing is a constant
-    if(is_numeric(*it)){
-        tokens.push_back({"CONST", const_line(it, in.end()), line});
-        line++;
-        memLine++;
-        return;
-    }
     for(; it != in.end(); it++){
         // if first thing is an instr
         if(str.size() > 0 && (*it) == ' '){
@@ -319,13 +362,26 @@ void Scanner::scanLine(string in){
             return;
         }
         // if first thing is a label
-        if((*it) == ':'){
+        else if(str.size() > 0 && (*it) == ':'){
             labels.push_back({str, memLine, line});
             str = "";
+            continue;
+        }
+        // if first thing is a constant
+        else if(str.size() == 0 && is_numeric(*it)){
+            tokens.push_back({"CONST", const_line(it, in.end()), line});
+            line++;
+            memLine++;
+            return;
         }
         // if we don't know what the first thing is yet
         if(is_alpha_numeric(*it)){
             str += *it;
+        }
+        else if(*it != ' '){
+            string it_str = string() + *it;
+            errorMsg("Unexpected character '" + it_str + "'.");
+            return;
         }
     }
     if(str.size() != 0){

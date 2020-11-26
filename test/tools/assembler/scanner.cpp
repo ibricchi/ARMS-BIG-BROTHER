@@ -20,14 +20,55 @@ Scanner::Scanner(){
 }
 const unordered_map<string, uint8_t> Scanner::op_map = {
     //{OP_NAME, Special, OPCODE, RS, RT, RD, IMM}
-    {"ADDI",    0},
     {"ADDIU",   0},
     {"ADDU",    0b100001},
-    {"AND",     0},
+    {"AND",     0b100100},
     {"ANDI",    0},
     {"BEQ",     0},
-    {"BEQL",    0},
-    {"BGEZ",    0}
+    {"BGEZ",    0},
+    {"BGEZAL",  0},
+    {"BGTZ",    0},
+    {"BLEZ",    0},
+    {"BLTZ",    0},
+    {"BLTZAL",  0},
+    {"BNE",     0},
+    {"DIV",     0},
+    {"DIVU",    0},
+    {"J",       0},
+    {"JALR",    0},
+    {"JAL",     0},
+    {"JR",      0},
+    {"LB",      0},
+    {"LBU",     0},
+    {"LH",      0},
+    {"LHU",     0},
+    {"LUI",     0},
+    {"LW",      0},
+    {"LWL",     0},
+    {"LWR",     0},
+    {"MTHI",    0},
+    {"MTLO",    0},
+    {"MULT",    0},
+    {"MULTU",   0},
+    {"OR",      0b100101},
+    {"ORI",     0},
+    {"SB",      0},
+    {"SH",      0},
+    {"SLL",     0},
+    {"SLLV",    0},
+    {"SLT",     0b101010},
+    {"SLTI",    0},
+    {"SLTIU",   0},
+    {"SLTU",    0b101011},
+    {"SRA",     0},
+    {"SRAV",    0},
+    {"SRL",     0},
+    {"SRLV",    0},
+    {"SUBIO",   0}, // not in specs
+    {"SUBU",    0b100011},
+    {"SW",      0},
+    {"XOR",     0b100110},
+    {"XORI",    0},
 };
 
 void Scanner::reset(){
@@ -209,7 +250,14 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     switch (op)
     {
     // 3 register expressions
-    case 0b100001:{ // ADD
+    case 0b100001: // ADD
+    case 0b100100: // AND
+    case 0b100101: // OR
+    case 0b101010: // SLT
+    case 0b101011: // SLTU
+    case 0b100011: // SUBU
+    case 0b100110: // XOR
+    {
         uint8_t rs = read_reg(it, end, true);
         if(error) return 0;
         if(it == end){
@@ -235,7 +283,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         out |= rs;
         out = out << 5 | rt;
         out = out << 5 | rd;
-        out = out << 10 | op;
+        out = out << 11 | op;
         break;
     }
     default:

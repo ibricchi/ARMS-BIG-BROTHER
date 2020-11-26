@@ -12,7 +12,7 @@ int main(){
     unordered_map<string, uint32_t> labels{};
 
     string line;
-    bool scanError = false;;
+    bool scanError = false;
     for(getline(cin, line); !cin.fail(); getline(cin, line)){
         scanner.scanLine(line);
         scanError |= scanner.error;

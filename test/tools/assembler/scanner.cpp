@@ -435,14 +435,20 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         out = out << 21 | op;
         break;
     }
-    // // MoveFrom
-    // case :{
-        
-    // }
-    // // MoveTo
-    // case :{
-
-    // }
+    // MoveTo
+    case 0b010001: // MTHI
+    case 0b010011: // MTLO
+    {
+        uint8_t rs = read_reg(it, end, false);
+        if(error) return 0;
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out |= rs;
+        out = out << 21 | op;
+        break;
+    }
     // ArithLogI
     case 0b001001: // ADDIU
     case 0b001100: // ANDI

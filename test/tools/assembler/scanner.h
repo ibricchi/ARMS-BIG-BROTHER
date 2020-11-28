@@ -41,9 +41,9 @@ private:
     void expectWhiteSpace(std::string::iterator&, std::string::iterator);
     void skipWhiteSpace(std::string::iterator&, std::string::iterator);
 
-    uint32_t const_line(std::string::iterator&, std::string::iterator);
-    uint8_t read_reg(std::string::iterator&, std::string::iterator, bool);
-    uint16_t read_imm(std::string::iterator&, std::string::iterator);
+    uint32_t const_line(std::string::iterator&, std::string::iterator, bool=false);
+    uint8_t read_reg(std::string::iterator&, std::string::iterator, bool=false, bool=false);
+    uint16_t read_imm(std::string::iterator&, std::string::iterator, bool=false);
     uint32_t instr_line(std::string, std::string::iterator&, std::string::iterator);
 
 public:

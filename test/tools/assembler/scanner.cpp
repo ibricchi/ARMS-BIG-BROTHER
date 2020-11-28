@@ -43,11 +43,11 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"JALR",    0b001001}, // JumpR
     {"JAL",     0b000011}, // Jump
     {"JR",      0b001000},
-    {"LB",      0b100000}, // LoadStore
-    {"LBU",     0b100100}, // LoadStore
-    {"LH",      0b100001}, // LoadStore
-    {"LHU",     0b100101}, // LoadStore
-    {"LUI",     0b011001}, // LoadI
+    {"LB",      0b1100000}, // LoadStore load stores have extra 1 at the begining to avoid conflicts
+    {"LBU",     0b1100100}, // LoadStore
+    {"LH",      0b1100001}, // LoadStore
+    {"LHU",     0b1100101}, // LoadStore
+    {"LUI",     0b011111}, // LoadI
     {"LW",      0b100011}, // LoadStore
     {"LWL",     0b100010}, // NEED TO FIGURE OUT !TODO
     {"LWR",     0b100110}, // NEED TO FIGURE OUT ASWELL SAME AS ABOVE base rt offset 5 5 16
@@ -57,8 +57,8 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"MULTU",   0b011001},
     {"OR",      0b100101},
     {"ORI",     0b001101},
-    {"SB",      0b101000}, // LoadStore
-    {"SH",      0b101001}, // LoadStore
+    {"SB",      0b1101000}, // LoadStore
+    {"SH",      0b1101001}, // LoadStore
     {"SLL",     0b000000}, // Shift
     {"SLLV",    0b000100}, // ShiftV
     {"SLT",     0b101010},
@@ -70,7 +70,7 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"SRL",     0b000010}, // Shit
     {"SRLV",    0b000110}, // ShiftV
     {"SUBU",    0b100011},
-    {"SW",      0b101011}, // LoadStore
+    {"SW",      0b1101011}, // LoadStore
     {"XOR",     0b100110},
     {"XORI",    0b001110},
 };
@@ -124,7 +124,7 @@ inline static bool is_alpha_numeric(char c){
     return is_alpha(c) || is_numeric(c) || (c == '_') ;
 }
 
-uint32_t Scanner::const_line(string::iterator& it, string::iterator end){
+uint32_t Scanner::const_line(string::iterator& it, string::iterator end, bool allow_paren){
     string str_val = "";
     str_val += *it;
 
@@ -134,7 +134,7 @@ uint32_t Scanner::const_line(string::iterator& it, string::iterator end){
     int valBase = 0; // 0 is for dec, 1 for hex, 2 for bin
 
     if(str_val == "0"){
-        if(is_numeric(*it)){
+        if(is_numeric(*it) || (allow_paren && *it=='(')){
             str_val += *it;
         }
         else if(*it == 'x' || *it == 'X') valBase = 1;
@@ -171,6 +171,9 @@ uint32_t Scanner::const_line(string::iterator& it, string::iterator end){
             if(*it == ' '){
                 expectWhiteSpace(it, end);
                 if(error) return 0;
+                break;
+            }else if(allow_paren && *it == '('){
+                break;
             }else{
                 string it_str = string() + *it;
                 errorMsg("Unexpected character '" + it_str + "' in constant.");
@@ -202,7 +205,7 @@ uint32_t Scanner::const_line(string::iterator& it, string::iterator end){
     }
 
 }
-uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma_terminated){
+uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma_terminated, bool paren_terminated){
     if(*it != '$'){
         errorMsg("Expected a register.");
         return 0;
@@ -220,8 +223,8 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
     string reg_str = "";
     if(is_numeric(*it)) reg_str += *it;
     it++;
-    if(comma_terminated ? *it == ',' : (it == end || *it == ' ')){
-        if(comma_terminated) it++;
+    if(comma_terminated ? *it == ',' : (paren_terminated ? *it == ')' : (it == end || *it == ' '))){
+        if(comma_terminated || paren_terminated) it++;
         return stol(reg_str);
     }
     if(!is_numeric(*it)){
@@ -231,15 +234,17 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
     }
     reg_str += *it;
     it++;
-    if(comma_terminated ? *it != ',' : (it != end && *it != ' ')){
+    if(comma_terminated ? *it != ',' : (paren_terminated ? *it != ')' : (it != end && *it != ' '))){
         string it_str = string() + *it;
         if(comma_terminated)
             errorMsg("Expected comma, found '" + it_str + "' instead.");
+        if(paren_terminated)
+            errorMsg("Expected ')' found '" + it_str + "' instead.");
         else
             errorMsg("Expected space or end of line, found '" + it_str + "' instead.");
         return 0;
     }
-    if(comma_terminated) it++;
+    if(comma_terminated || paren_terminated) it++;
     uint8_t reg_num = stol(reg_str);
     if(reg_num > 31){
         errorMsg("Register numbers range between 0-31, found '" + to_string(reg_num) + "'.");
@@ -247,13 +252,20 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
     }
     return reg_num;
 }
-
-uint16_t Scanner::read_imm(string::iterator& it, string::iterator end){
+uint16_t Scanner::read_imm(string::iterator& it, string::iterator end, bool paren_terminated){
     if(!is_numeric(*it)){
         errorMsg("Immediate parameter expects a constant.");
         return 0;
     }
-    uint32_t imm_32 = const_line(it, end);
+    uint32_t imm_32 = const_line(it, end, paren_terminated);
+    if(paren_terminated){
+        if(*it != '('){
+            string it_str = string() + *it;
+            errorMsg("Imediate parameter expected '(' character, found '" + it_str + "' instead.");
+            return 0;
+        }
+        else it++;
+    }
     uint16_t imm_16 = imm_32;
     if(imm_16 != imm_32){
         warnMsg("Imediate constant is greater than 16bits");
@@ -396,10 +408,26 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         out = out << 16 | imm;
         break;
     }
-    // // LoadI
-    // case :{
-
-    // }
+    // LoadI
+    case 0b011111:{ // LUI
+        uint8_t rt = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        uint16_t imm = read_imm(it, end);
+        if(error) return 0;
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out |= op;
+        out = out << 10 | rt;
+        out = out << 16 | imm;
+        break;
+    }
     // // Branch
     // case :{
 
@@ -408,10 +436,40 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     // case :{
 
     // }
-    // // LoadStore
-    // case :{
-
-    // }
+    // LoadStore
+    case 0b1100000: // LB
+    case 0b1100100: // LBU
+    case 0b1100001: // LH
+    case 0b1100101: // LHU
+    case 0b1101000: // SB
+    case 0b1101001: // SH
+    case 0b1101011: // SW
+    {
+        uint8_t rt = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        uint16_t imm = read_imm(it, end, true);
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        if(error) return 0;
+        uint8_t rs = read_reg(it, end, false, true);
+        if(error) return 0;
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out |= op;
+        out = out << 5 | rs;
+        out = out << 5 | rt;
+        out = out << 16 | imm;
+        break;
+    }
     // // Jump
     // case :{
 
@@ -456,6 +514,7 @@ void Scanner::scanLine(string in){
         else if(*it != ' '){
             string it_str = string() + *it;
             errorMsg("Unexpected character '" + it_str + "'.");
+            line++;
             return;
         }
     }

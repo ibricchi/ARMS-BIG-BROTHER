@@ -272,6 +272,18 @@ uint16_t Scanner::read_imm(string::iterator& it, string::iterator end, bool pare
     }
     return imm_32;
 }
+uint8_t Scanner::read_as(string::iterator& it, string::iterator end){
+    if(!is_numeric(*it)){
+        errorMsg("'as' field expects a constant.");
+        return 0;
+    }
+    uint32_t as_32 = const_line(it, end);
+    uint8_t as_5 = as_32 & 0b011111;
+    if(as_5 != as_32){
+        warnMsg("'as' field constant is greater than 5bits");
+    }
+    return as_5;
+}
 
 uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterator end){
     if(op_map.find(instr) == op_map.end()){
@@ -292,6 +304,14 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b100011: // SUBU
     case 0b100110: // XOR
     {
+        uint8_t rd = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        if(error) return 0;
         uint8_t rs = read_reg(it, end, true);
         if(error) return 0;
         if(it == end){
@@ -300,15 +320,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         }
         skipWhiteSpace(it, end);
         if(error) return 0;
-        uint8_t rt = read_reg(it, end, true);
-        if(error) return 0;
-        if(it == end){
-            errorMsg("Not enough parameters passed to instruction.");
-            return 0;
-        }
-        skipWhiteSpace(it, end);
-        if(error) return 0;
-        uint8_t rd = read_reg(it, end, false);
+        uint8_t rt = read_reg(it, end, false);
         if(error) return 0;
         if(it != end){
             expectWhiteSpace(it, end);
@@ -345,10 +357,39 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         out = out << 16 | op;
         break;
     }
-    // // Shift
-    // case :{
-
-    // }
+    // Shift
+    case 0b000000: // SLL
+    case 0b000011: // SRA
+    case 0b000010: // SRL
+    {
+        uint8_t rd = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        if(error) return 0;
+        uint8_t rt = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        if(error) return 0;
+        uint8_t as = read_as(it, end);
+        if(error) return 0;
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out |= rt;
+        out = out << 5 | rd;
+        out = out << 5 | as;
+        out = out << 6 | op;
+        break;
+    }
     // // ShiftV
     // case :{
 

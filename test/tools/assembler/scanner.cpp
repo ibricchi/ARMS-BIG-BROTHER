@@ -298,7 +298,6 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b100001: // ADD
     case 0b100100: // AND
     case 0b100101: // OR
-    case 0b000100: // SLLV
     case 0b101010: // SLT
     case 0b101011: // SLTU
     case 0b100011: // SUBU
@@ -390,10 +389,39 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         out = out << 6 | op;
         break;
     }
-    // // ShiftV
-    // case :{
-
-    // }
+    // ShiftV
+    case 0b000100: // SLLV
+    case 0b000111: // SRAV
+    case 0b000110: // SRLV
+    {
+        uint8_t rd = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        if(error) return 0;
+        uint8_t rt = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        if(error) return 0;
+        uint8_t rs = read_reg(it, end, false);
+        if(error) return 0;
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out |= rs;
+        out = out << 5 | rt;
+        out = out << 5 | rd;
+        out = out << 11 | op;
+        break;
+    }
     // JumpR
     case 0b001000: // JR
     {

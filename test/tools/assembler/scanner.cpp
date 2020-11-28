@@ -30,12 +30,12 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"AND",     0b100100},
     {"ANDI",    0b001100},
     {"BEQ",     0b1000100}, // Branch branch have extra 1 at the begining to avoid conflicts
-    {"BGEZ",    0b00001}, // Other BranchZ (000001)
-    {"BGEZAL",  0b10001}, // Other BranchZ (000001)
-    {"BGTZ",    0b000111}, // BranchZ    I think i could combine them if I increase this to uint16_t
+    {"BGEZ",    0b11100001}, // Other BranchZ other branchz have 3 extra 1's at the begining to avoid conflict
+    {"BGEZAL",  0b11110001}, // Other BranchZ 
+    {"BGTZ",    0b000111}, // BranchZ branch z have extra 1 at the begining to avoid conflicts
     {"BLEZ",    0b000110}, // BranchZ
     {"BLTZ",    0b000001}, // BranchZ
-    {"BLTZAL",  0b10000}, // Other BranchZ (000001)
+    {"BLTZAL",  0b11110000}, // Other BranchZ 
     {"BNE",     0b1000101}, // Branch
     {"DIV",     0b011010},
     {"DIVU",    0b011011},
@@ -48,9 +48,9 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"LH",      0b1100001}, // LoadStore
     {"LHU",     0b1100101}, // LoadStore
     {"LUI",     0b011111}, // LoadI
-    {"LW",      0b100011}, // LoadStore
-    {"LWL",     0b100010}, // NEED TO FIGURE OUT !TODO
-    {"LWR",     0b100110}, // NEED TO FIGURE OUT ASWELL SAME AS ABOVE base rt offset 5 5 16
+    {"LW",      0b1100011}, // LoadStore
+    {"LWL",     0b1100010}, // LoadStore
+    {"LWR",     0b1100110}, // LoadStore
     {"MTHI",    0b010001}, // MoveTo
     {"MTLO",    0b010011}, // MoveTo
     {"MULT",    0b011000},
@@ -555,15 +555,62 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         out <<= 16;
         break;
     }
-    // // BranchZ
-    // case :{
-
-    // }
+    // BranchZ
+    case 0b1000111: // BGTZ
+    case 0b1000110: // BLEZ
+    case 0b1000001: // BLTZ
+    {
+        uint8_t rs = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        if(error) return 0;
+        label = read_label(it, end);
+        if(error) return 0;
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out |= op;
+        out = out << 5 | rs;
+        out <<= 21;
+        break;
+    }
+    // Other BranchZ
+    case 0b11100001: // BGEZ
+    case 0b11110001: // BGEZAL
+    case 0b11110000: // BLTZAL
+    {
+        uint8_t rs = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        if(error) return 0;
+        label = read_label(it, end);
+        if(error) return 0;
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out |= 0b000001;
+        out = out << 5 | rs;
+        out = out << 5 | (op | 0b11111);
+        out <<= 16;
+        break;
+    }
     // LoadStore
     case 0b1100000: // LB
     case 0b1100100: // LBU
     case 0b1100001: // LH
     case 0b1100101: // LHU
+    case 0b1100010: //LWL
+    case 0b1100110: //LWR
     case 0b1101000: // SB
     case 0b1101001: // SH
     case 0b1101011: // SW

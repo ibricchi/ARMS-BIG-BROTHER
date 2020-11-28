@@ -39,9 +39,9 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"BNE",     0b1000101}, // Branch
     {"DIV",     0b011010},
     {"DIVU",    0b011011},
-    {"J",       0b000010}, // Jump
+    {"J",       0b1000010}, // Jump jump have extra 1 at the begining to avoid conflicts
     {"JALR",    0b001001}, // JumpR
-    {"JAL",     0b000011}, // Jump
+    {"JAL",     0b1000011}, // Jump
     {"JR",      0b001000},
     {"LB",      0b1100000}, // LoadStore load stores have extra 1 at the begining to avoid conflicts
     {"LBU",     0b1100100}, // LoadStore
@@ -640,10 +640,20 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         out = out << 16 | imm;
         break;
     }
-    // // Jump
-    // case :{
-
-    // }
+    // Jump
+    case 0b1000010: // J
+    case 0b1000011: // JAL
+    {
+        uint8_t rs = read_reg(it, end, false, true);
+        if(error) return 0;
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out |= op;
+        out <<= 26;
+        break;
+    }
     default:
         errorMsg("Instruction '" + instr + "' has not yet been implemented, but should exist.");
         return 0;

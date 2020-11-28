@@ -6,12 +6,12 @@
 using namespace std;
 
 // Token Stuff
-Token::Token(string _name, uint32_t _data, uint32_t _line){
+Token::Token(string _name, uint32_t _data, uint32_t _line, uint32_t _memLine, string _label){
     name = _name;
     data = _data;
 
-    startIn = 0;
-    label = "";
+    memLine = _memLine;
+    label = _label;
 
     line = _line;
 }
@@ -29,14 +29,14 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"ADDU",    0b100001},
     {"AND",     0b100100},
     {"ANDI",    0b001100},
-    {"BEQ",     0b000100}, // Branch
+    {"BEQ",     0b1000100}, // Branch branch have extra 1 at the begining to avoid conflicts
     {"BGEZ",    0b00001}, // Other BranchZ (000001)
     {"BGEZAL",  0b10001}, // Other BranchZ (000001)
     {"BGTZ",    0b000111}, // BranchZ    I think i could combine them if I increase this to uint16_t
     {"BLEZ",    0b000110}, // BranchZ
     {"BLTZ",    0b000001}, // BranchZ
     {"BLTZAL",  0b10000}, // Other BranchZ (000001)
-    {"BNE",     0b000101}, // Branch
+    {"BNE",     0b1000101}, // Branch
     {"DIV",     0b011010},
     {"DIVU",    0b011011},
     {"J",       0b000010}, // Jump
@@ -284,8 +284,26 @@ uint8_t Scanner::read_as(string::iterator& it, string::iterator end){
     }
     return as_5;
 }
+string Scanner::read_label(string::iterator& it, string::iterator end){
+    if(!is_alpha(*it)){
+        errorMsg("Label parameter invalid, name must begin with a letter");
+        return "";
+    }
+    string label = string() + *it;
+    it++;
+    for(;*it != ' ' && it != end; it++){
+        if(is_alpha_numeric(*it))
+            label += *it;
+        else{
+            string it_str = string() + *it;
+            errorMsg("Label parameter invalid, expected digit, letter, or underscore, found '" + it_str + "' instead.");
+            return "";
+        }
+    }
+    return label;
+}
 
-uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterator end){
+uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterator end, string& label){
     if(op_map.find(instr) == op_map.end()){
         errorMsg("Unkown instruction '" + instr + "'.");
         return 0;
@@ -457,13 +475,6 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b001011: // SLTIU
     case 0b001110: // XORI
     {
-        uint8_t rs = read_reg(it, end, true);
-        if(error) return 0;
-        if(it == end){
-            errorMsg("Not enough parameters passed to instruction.");
-            return 0;
-        }
-        skipWhiteSpace(it, end);
         uint8_t rt = read_reg(it, end, true);
         if(error) return 0;
         if(it == end){
@@ -471,6 +482,15 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
             return 0;
         }
         skipWhiteSpace(it, end);
+        if(error) return 0;
+        uint8_t rs = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        if(error) return 0;
         uint16_t imm = read_imm(it, end);
         if(error) return 0;
         if(it != end){
@@ -503,10 +523,38 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         out = out << 16 | imm;
         break;
     }
-    // // Branch
-    // case :{
-
-    // }
+    // Branch
+    case 0b1000100: // BEQ
+    case 0b1000101: // BNE
+    {
+        uint8_t rs = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        if(error) return 0;
+        uint8_t rt = read_reg(it, end, true);
+        if(error) return 0;
+        if(it == end){
+            errorMsg("Not enough parameters passed to instruction.");
+            return 0;
+        }
+        skipWhiteSpace(it, end);
+        if(error) return 0;
+        label = read_label(it, end);
+        if(error) return 0;
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out |= op;
+        out = out << 5 | rs;
+        out = out << 5 | rt;
+        out <<= 16;
+        break;
+    }
     // // BranchZ
     // case :{
 
@@ -564,20 +612,21 @@ void Scanner::scanLine(string in){
         // if first thing is an instr
         if(str.size() > 0 && (*it) == ' '){
             skipWhiteSpace(it, in.end());
-            tokens.push_back({str, instr_line(str, it, in.end()), line});
+            string label = "";
+            tokens.push_back({str, instr_line(str, it, in.end(), label), line, memLine, label});
             memLine++;
             line++;
             return;
         }
         // if first thing is a label
         else if(str.size() > 0 && (*it) == ':'){
-            labels.push_back({str, memLine, line});
+            labels.push_back({str, memLine, line, memLine, ""});
             str = "";
             continue;
         }
         // if first thing is a constant
         else if(str.size() == 0 && is_numeric(*it)){
-            tokens.push_back({"CONST", const_line(it, in.end()), line});
+            tokens.push_back({"CONST", const_line(it, in.end()), line, memLine, ""});
             line++;
             memLine++;
             return;

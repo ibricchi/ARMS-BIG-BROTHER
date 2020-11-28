@@ -14,14 +14,14 @@ struct Token{
     uint32_t data;
 
     // missing data (in case of label)
-    uint8_t startIn;
+    uint32_t memLine;
     std::string label;
 
     // debug data
     uint32_t line;
 
     // initializer
-    Token(std::string, uint32_t, uint32_t);
+    Token(std::string, uint32_t, uint32_t, uint32_t, std::string);
 
     // helper functions
     uint32_t get_range(int, int);
@@ -45,7 +45,8 @@ private:
     uint8_t read_reg(std::string::iterator&, std::string::iterator, bool=false, bool=false);
     uint16_t read_imm(std::string::iterator&, std::string::iterator, bool=false);
     uint8_t read_as(std::string::iterator&, std::string::iterator);
-    uint32_t instr_line(std::string, std::string::iterator&, std::string::iterator);
+    std::string read_label(std::string::iterator&, std::string::iterator);
+    uint32_t instr_line(std::string, std::string::iterator&, std::string::iterator, std::string&);
 
 public:
     Scanner();

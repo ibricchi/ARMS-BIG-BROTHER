@@ -671,7 +671,7 @@ void Scanner::scanLine(string in){
             skipWhiteSpace(it, in.end());
             string label = "";
             tokens.push_back({str, instr_line(str, it, in.end(), label), line, memLine, label});
-            memLine++;
+            memLine += 4;
             line++;
             return;
         }
@@ -685,7 +685,7 @@ void Scanner::scanLine(string in){
         else if(str.size() == 0 && is_numeric(*it)){
             tokens.push_back({"CONST", const_line(it, in.end()), line, memLine, ""});
             line++;
-            memLine++;
+            memLine += 4;
             return;
         }
         // if we don't know what the first thing is yet

@@ -644,7 +644,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b1000010: // J
     case 0b1000011: // JAL
     {
-        uint8_t rs = read_reg(it, end, false, true);
+        label = read_label(it, end);
         if(error) return 0;
         if(it != end){
             expectWhiteSpace(it, end);

@@ -12,9 +12,9 @@ module register_file(
     output logic[31:0] read_data2
 );
 
-    reg [31:0] register[31:0];
+    logic[31:0] register[31:0];
 
-    always @(posedge clk or posedge reset) begin
+    always_ff @(posedge clk) begin
         if(reset) begin
             for(int i = 0; i < 32; i = i + 1) begin
                 register[i] <= 0;

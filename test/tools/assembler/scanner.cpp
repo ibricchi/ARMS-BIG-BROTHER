@@ -215,25 +215,186 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
         errorMsg("Expected register number, reached end of line instead.");
         return 0;
     }
-    if(!is_numeric(*it)){
-        string it_str = string() + *it;
-        errorMsg("Expected integer found '" + it_str + "' instead.");
-        return 0;
+    uint8_t reg_num = 0;
+    switch (*it)
+    {
+    case 'a':
+        it++;
+        if(it == end || *it == ' '){
+            errorMsg("Register 'a' does not exist.");
+            return 0;
+        }
+        if(*it != 't' && !('0' <= *it && *it <= '3')){
+            string it_str = string() + *it;
+            errorMsg("'a' register must be followed by t or 0-3, found '" + it_str + "' instead.");
+            return 0;
+        }
+        reg_num = (*it == 't')?1:(4 + (*it-'0'));
+        it++;
+        break;
+    case 'f':
+        it++;
+        if(it == end || *it == ' '){
+            errorMsg("Register 'f' does not exist.");
+            return 0;
+        }
+        if(*it != 'p'){
+            string it_str = string() + *it;
+            errorMsg("'f' register must be followed by p found '" + it_str + "' instead.");
+            return 0;
+        }
+        reg_num = 30;
+        it++;
+        break;
+    case 'g':
+        it++;
+        if(it == end || *it == ' '){
+            errorMsg("Register 'g' does not exist.");
+            return 0;
+        }
+        if(*it != 'p'){
+            string it_str = string() + *it;
+            errorMsg("'g' register must be followed by p found '" + it_str + "' instead.");
+            return 0;
+        }
+        reg_num = 28;
+        it++;
+        break;
+    case 'k':
+        it++;
+        if(it == end || *it == ' '){
+            errorMsg("Register 'k' does not exist.");
+            return 0;
+        }
+        if(*it != '0' && *it != '1'){
+            string it_str = string() + *it;
+            errorMsg("'k' registers must be followed by 0 or 1, found '" + it_str + "' instead.");
+            return 0;
+        }
+        reg_num = 26 + (*it=='1');
+        it++;
+        break;
+    case 'r':
+        it++;
+        if(it == end || *it == ' '){
+            errorMsg("Register 'r' does not exist.");
+            return 0;
+        }
+        if(*it != 'a'){
+            string it_str = string() + *it;
+            errorMsg("'r' register must be followed by a found '" + it_str + "' instead.");
+            return 0;
+        }
+        reg_num = 31;
+        it++;
+        break;
+    case 's':
+        it++;
+        if(it == end || *it == ' '){
+            errorMsg("Register 's' does not exist.");
+            return 0;
+        }
+        if(!('0'<=*it&&*it<='7') && *it != 'p'){
+            string it_str = string() + *it;
+            errorMsg("'s' register must be followed by p or 0-7, found '" + it_str + "' instead.");
+            return 0;
+        }
+        reg_num = *it=='p'?29:(16 + (*it-'0'));
+        it++;
+        break;
+    case 't':
+        it++;
+        if(it == end || *it == ' '){
+            errorMsg("Register 't' does not exist.");
+            return 0;
+        }
+        if(!is_numeric(*it)){
+            string it_str = string() + *it;
+            errorMsg("'t' register must be followed by 0-9, found '" + it_str + "' instead.");
+            return 0;
+        }
+        reg_num = ('0'<=*it&&*it<='7')?(8 + (*it-'0')):(24+(*it=='9'));
+        it++;
+        break;
+    case 'v':
+        it++;
+        if(it == end || *it == ' '){
+            errorMsg("Register 'v' does not exist.");
+            return 0;
+        }
+        if(*it != '0' && *it != '1'){
+            string it_str = string() + *it;
+            errorMsg("'v' registers must be followed by 0 or 1, found '" + it_str + "' instead.");
+            return 0;
+        }
+        reg_num = 2 + (*it=='1');
+        it++;
+        break;
+    case 'z':
+        it++;
+        if(it == end || *it == ' '){
+            errorMsg("Register 'z' does not exist.");
+            return 0;
+        }
+        if(*it != 'e'){
+            string it_str = string() + *it;
+            errorMsg("Expected to find register 'zero', found 'z" + it_str + "' instead.");
+            return 0;
+        }
+        it++;
+        if(it == end || *it == ' '){
+            errorMsg("Register 'ze' does not exist.");
+            return 0;
+        }
+        if(*it != 'r'){
+            string it_str = string() + *it;
+            errorMsg("Expected to find register 'zero', found 'ze" + it_str + "' instead.");
+            return 0;
+        }
+        it++;
+        if(it == end || *it == ' '){
+            errorMsg("Register 'zer' does not exist.");
+            return 0;
+        }
+        if(*it != 'o'){
+            string it_str = string() + *it;
+            errorMsg("Expected to find register 'zero', found 'zer" + it_str + "' instead.");
+            return 0;
+        }
+        reg_num = 0;
+        it++;
+        break;
+    default:
+        if(is_numeric(*it)){
+            string reg_str = string() + *it;
+            it++;
+            if(comma_terminated ? *it == ',' : (paren_terminated ? *it == ')' : (it == end || *it == ' '))){
+                if(comma_terminated || paren_terminated) it++;
+                return stol(reg_str);
+            }
+            if(!is_numeric(*it)){
+                string it_str = string() + *it;
+                errorMsg("Expected integer found '" + it_str + "' instead.");
+                return 0;
+            }
+            reg_str += *it;
+            
+            reg_num = stol(reg_str);
+            if(reg_num > 31){
+                errorMsg("Register numbers range between 0-31, found '" + to_string(reg_num) + "'.");
+                return 0;
+            }
+            
+            it++;
+        }
+        else{
+            string it_str = string() + *it;
+            errorMsg("Invalid regiter name begining with '" + it_str + "'.");
+            return 0;
+        }
+        break;
     }
-    string reg_str = "";
-    if(is_numeric(*it)) reg_str += *it;
-    it++;
-    if(comma_terminated ? *it == ',' : (paren_terminated ? *it == ')' : (it == end || *it == ' '))){
-        if(comma_terminated || paren_terminated) it++;
-        return stol(reg_str);
-    }
-    if(!is_numeric(*it)){
-        string it_str = string() + *it;
-        errorMsg("Expected integer found '" + it_str + "' instead.");
-        return 0;
-    }
-    reg_str += *it;
-    it++;
+
     if(comma_terminated ? *it != ',' : (paren_terminated ? *it != ')' : (it != end && *it != ' '))){
         string it_str = string() + *it;
         if(comma_terminated)
@@ -245,11 +406,7 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
         return 0;
     }
     if(comma_terminated || paren_terminated) it++;
-    uint8_t reg_num = stol(reg_str);
-    if(reg_num > 31){
-        errorMsg("Register numbers range between 0-31, found '" + to_string(reg_num) + "'.");
-        return 0;
-    }
+
     return reg_num;
 }
 uint16_t Scanner::read_imm(string::iterator& it, string::iterator end, bool paren_terminated){

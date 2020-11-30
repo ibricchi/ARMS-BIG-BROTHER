@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 set -eou pipefail
 
 CFILE="$1" # should only include the basename (e.g. 'test' instead of 'test.c')

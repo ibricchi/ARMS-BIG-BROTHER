@@ -7,25 +7,24 @@ then
 fi
 
 cd tests
-tests=( $(ls | grep '.asm$' | sed 's/.asm$//') )
+tests=($(ls | grep '.asm$' | sed 's/.asm$//'))
 cd ../
-echo $tests;
 
-echo "Running tests."
+echo "Running tests:"
+echo ${tests[@]};
 echo ""
 
 pass="PASS"
-for test in $tests; do
-    echo "Test: ${test}:"
+for test in ${tests[@]}; do
     ../bin/assembler < "./tests/$test.asm" > "./tests/$test.bin.out"
     if cmp -s "./tests/$test.bin" "./tests/$test.bin.out"
     then
-        echo "PASS"
+        echo "Test ${test}: PASS"
     else
         pass="FAIL"
-        echo "FAIL"
+        echo "Test ${test}: FAIL"
     fi 
-    echo ""
 done
+echo ""
 
 echo "Overal: $pass"

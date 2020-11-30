@@ -1,7 +1,10 @@
 #!/bin/bash
 set -e
 
+if [ $# -eq 0]
+then
 ./build_assembler.sh
+fi
 
 cd tests
 tests=( $(ls | grep '.asm$' | sed 's/.asm$//') )
@@ -15,7 +18,7 @@ pass="PASS"
 for test in $tests; do
     echo "Test: ${test}:"
     ../bin/assembler < "./tests/$test.asm" > "./tests/$test.bin.out"
-    if diff "./tests/$test.asm" "./tests/$test.bin.out" &> /dev/null
+    if cmp -s "./tests/$test.bin" "./tests/$test.bin.out"
     then
         echo "PASS"
     else

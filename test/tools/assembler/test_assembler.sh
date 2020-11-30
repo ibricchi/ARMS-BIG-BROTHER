@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-if [ $# -eq 0]
+if [ $# -eq 0 ]
 then
 ./build_assembler.sh
 fi

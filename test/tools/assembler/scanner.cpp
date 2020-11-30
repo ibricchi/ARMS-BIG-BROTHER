@@ -621,20 +621,8 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         out = out << 11 | op;
         break;
     }
-    // JumpR
+    // JumpMoveTo
     case 0b001000: // JR
-    {
-        uint8_t rs = read_reg(it, end, false);
-        if(error) return 0;
-        if(it != end){
-            expectWhiteSpace(it, end);
-            if(error) return 0;
-        }
-        out |= rs;
-        out = out << 21 | op;
-        break;
-    }
-    // MoveTo
     case 0b010001: // MTHI
     case 0b010011: // MTLO
     {

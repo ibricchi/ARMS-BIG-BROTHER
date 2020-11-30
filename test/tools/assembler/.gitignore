@@ -1,4 +1,4 @@
 # binaries
 assembler
-test.asm
-test.bin
+*.asm
+*.bin

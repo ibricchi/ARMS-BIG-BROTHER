@@ -1,18 +1,29 @@
-#!bin/bash
+#!/bin/bash
 
 set -eou pipefail
 
 SOURCE_DIRECTORY="$1"
 CPU_VARIANT="$2"
 TESTCASE="$3"
+IS_C_PROGRAM="${4:-no}" # 'yes' or 'no' (default is 'no')
 
 ASSEMBLER_PATH="./" # SPECIFY THIS!
 REFERENCE_SIMULATOR_PATH="./" # SPECIFY THIS!
 
->&2 echo "Test MIPS ${CPU_VARIANT} using test-case ${TESTCASE}"
+if [[ "$IS_C_PROGRAM" == "yes" ]] ; then
+   >&2 echo "Test MIPS ${CPU_VARIANT} using test-program ${TESTCASE}"
 
->&2 echo "  1 - Assembling test case"
-ASSEMBLER_PATH < ./assembly/${TESTCASE}.asm > ./binary/${TESTCASE}.hex
+   >&2 echo "  1 - Assembling test case"
+   ./c_to_mips_hex.sh ${TESTCASE}
+elif [[ "$IS_C_PROGRAM" == "no" ]] ; then
+   >&2 echo "Test MIPS ${CPU_VARIANT} using test-case ${TESTCASE}"
+
+   >&2 echo "  1 - Assembling test case"
+   ASSEMBLER_PATH < ./assembly/${TESTCASE}.asm > ./binary/${TESTCASE}.hex
+else
+   >&2 echo "FAIL: Invalid 'IS_C_PROGRSM' argument: $IS_C_PROGRAM"
+   exit
+fi
 
 >&2 echo "  2 - Compiling test-bench"
 iverilog -g 2012 \

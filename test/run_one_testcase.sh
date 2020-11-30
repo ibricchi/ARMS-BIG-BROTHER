@@ -5,7 +5,8 @@ set -eou pipefail
 SOURCE_DIRECTORY="$1"
 CPU_VARIANT="$2"
 TESTCASE="$3"
-IS_C_PROGRAM="${4:-no}" # 'yes' or 'no' (default is 'no')
+INSTRUCTION="$4" # only used for printing to stdout
+IS_C_PROGRAM="${5:-no}" # 'yes' or 'no' (default is 'no')
 
 ASSEMBLER_PATH="./" # SPECIFY THIS!
 REFERENCE_SIMULATOR_PATH="./" # SPECIFY THIS!
@@ -38,7 +39,7 @@ RESULT=$?
 set -e
 
 if [[ "${RESULT}" -ne 0 ]] ; then
-   echo "   MIPS_${VARIANT}, ${TESTCASE}, FAIL"
+   echo "${TESTCASE} ${INSTRUCTION} Fail"
    exit
 fi
 
@@ -55,7 +56,7 @@ RESULT=$?
 set -e
 
 if [[ "${RESULT}" -ne 0 ]] ; then
-   echo "   MIPS_${VARIANT}, ${TESTCASE}, FAIL"
+   echo "${TESTCASE} ${INSTRUCTION} Fail"
 else
-   echo "   MIPS_${VARIANT}, ${TESTCASE}, PASS"
+   echo "${TESTCASE} ${INSTRUCTION} Pass"
 fi

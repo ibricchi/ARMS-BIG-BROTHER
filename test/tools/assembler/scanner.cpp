@@ -15,9 +15,6 @@ Token::Token(string _name, uint32_t _data, uint32_t _line, uint32_t _memLine, st
 
     line = _line;
 }
-uint32_t Token::get_range(int l, int r){
-    return (data<<l)>>(31-r);
-}
 
 // Scanner Stuff
 Scanner::Scanner(){
@@ -83,13 +80,16 @@ void Scanner::reset(){
     error = false;
 }
 
+// function used to easily handle errors
 void Scanner::errorMsg(string msg){
     error = true;
     cerr << "Error: [Line " << line << "] " << msg << endl;
 }
+// function used to easily handle warnings
 void Scanner::warnMsg(string msg){
     cerr << "Warning: [Line " << line << "] " << msg << endl;
 }
+// loop through remainder of line and if anything non whitespace is encountered throw error
 void Scanner::expectWhiteSpace(string::iterator& it, string::iterator end){
     bool allSpaces = true;
     string msg = "";
@@ -103,11 +103,13 @@ void Scanner::expectWhiteSpace(string::iterator& it, string::iterator end){
         errorMsg("Expected whitespace, found '" + msg + "' instead.");
     }
 }
+// skip any white space, if end of line is reached throw error
 void Scanner::skipWhiteSpace(string::iterator& it, string::iterator end){
     while(*it == ' ' && it != end) it++;
     if(it == end) errorMsg("Expected more parameters, reached end of line instead.");
 }
 
+// static helpers taht provide quick checks
 inline static bool is_alpha(char c){
     return ('a' <= c && c <='z') || ('A' <= c && c <= 'Z');
 }
@@ -124,37 +126,43 @@ inline static bool is_alpha_numeric(char c){
     return is_alpha(c) || is_numeric(c) || (c == '_') ;
 }
 
+// expects remainder of line to be a constant, allows for decimanl, binary, and hex
+// if anything else is found throws error
+// assumes first character is valid
+// also used to obtain imediates, and shifts in load instructions
 uint32_t Scanner::const_line(string::iterator& it, string::iterator end, bool allow_paren){
-    string str_val = "";
-    str_val += *it;
+    // keep track of string value
+    string str_val = string() + *it;
 
     it++;
-    if(it == end) return stol(str_val);
+    if(it == end) return stol(str_val); // if 1 digit then return digit, must be decimal as both bin and hex require at least 3 chars
     
     int valBase = 0; // 0 is for dec, 1 for hex, 2 for bin
 
-    if(str_val == "0"){
+    if(str_val == "0"){ // check what the base of the number is dec, bin, or hex
         if(is_numeric(*it) || (allow_paren && *it=='(')){
             str_val += *it;
         }
         else if(*it == 'x' || *it == 'X') valBase = 1;
         else if(*it == 'b' || *it == 'B') valBase = 2;
-        else if(*it == ' '){
+        else if(*it == ' '){ // whitespace indicates end of line, and nothing should apear after
             expectWhiteSpace(it, end);
             if(error) return 0;
             else return stol(str_val);
         }
-        else{
+        else{ // any other character is
             string it_str = string() + *it;
             errorMsg("Unexpected character '" + it_str + "' in constant.");
             return 0;
         }
     }
 
+    // if valid base is 0 then don't advance at begining otherwise skip of b or x character
+    // iterate until end of line
     for(it+=(valBase!=0); it != end; it++){
         bool is_valid = false;
 
-        switch (valBase)
+        switch (valBase) // allow different characters depending on the base
         {
         case 0:
             is_valid = is_numeric(*it);
@@ -167,23 +175,23 @@ uint32_t Scanner::const_line(string::iterator& it, string::iterator end, bool al
             break;
         }
 
-        if(!is_valid){
-            if(*it == ' '){
+        if(!is_valid){ // if encounters invalid charater check what kind
+            if(*it == ' '){ // spaces are allowed as long as nothing comes after
                 expectWhiteSpace(it, end);
                 if(error) return 0;
                 break;
-            }else if(allow_paren && *it == '('){
+            }else if(allow_paren && *it == '('){ // brackets are allowed if flag is enabled, this is used for certain load instructions
                 break;
-            }else{
+            }else{ // anything else is not allowed throw error
                 string it_str = string() + *it;
                 errorMsg("Unexpected character '" + it_str + "' in constant.");
                 return 0;
             }
         }
-        str_val += *it;
+        str_val += *it; // if no errors where encountered then add character to string value
     }
 
-    switch (valBase)
+    switch (valBase) // process string value based on base
     {
     case 0:
         return stol(str_val);
@@ -205,31 +213,33 @@ uint32_t Scanner::const_line(string::iterator& it, string::iterator end, bool al
     }
 
 }
+// tool to get register number
+// specific required delimiters are checked for and consumer , and ) if required 
 uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma_terminated, bool paren_terminated){
-    if(*it != '$'){
+    if(*it != '$'){ // registers must begin with a $ symbol
         errorMsg("Expected a register.");
         return 0;
     }
     it++;
-    if(it == end){
+    if(it == end){ // can't have reached end
         errorMsg("Expected register number, reached end of line instead.");
         return 0;
     }
     uint8_t reg_num = 0;
-    switch (*it)
+    switch (*it) // check register name type and process differently
     {
-    case 'a':
+    case 'a': // named registers all follow the same pattern
         it++;
-        if(it == end || *it == ' '){
+        if(it == end || *it == ' '){ // check that we haven't reached the end
             errorMsg("Register 'a' does not exist.");
             return 0;
         }
-        if(*it != 't' && !('0' <= *it && *it <= '3')){
+        if(*it != 't' && !('0' <= *it && *it <= '3')){ // check valid second characters
             string it_str = string() + *it;
             errorMsg("'a' register must be followed by t or 0-3, found '" + it_str + "' instead.");
             return 0;
         }
-        reg_num = (*it == 't')?1:(4 + (*it-'0'));
+        reg_num = (*it == 't')?1:(4 + (*it-'0')); // calculate the number the label corresponds to
         it++;
         break;
     case 'f':
@@ -330,7 +340,7 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
         reg_num = 2 + (*it=='1');
         it++;
         break;
-    case 'z':
+    case 'z': // zero register is the only to begin with z, so just check each character until zero pattern is matched
         it++;
         if(it == end || *it == ' '){
             errorMsg("Register 'z' does not exist.");
@@ -364,30 +374,30 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
         reg_num = 0;
         it++;
         break;
-    default:
+    default: // numeric registers are also allowed
         if(is_numeric(*it)){
             string reg_str = string() + *it;
             it++;
-            if(comma_terminated ? *it == ',' : (paren_terminated ? *it == ')' : (it == end || *it == ' '))){
-                if(comma_terminated || paren_terminated) it++;
+            if(comma_terminated ? *it == ',' : (paren_terminated ? *it == ')' : (it == end || *it == ' '))){ // check if expected terminator has been found, this indicates a single digit register, single digit will never be > 32 so just return value
+                if(comma_terminated || paren_terminated) it++; // consume non space delimiter
                 return stol(reg_str);
             }
-            if(!is_numeric(*it)){
+            if(!is_numeric(*it)){ // if second character is non numeric and non delimiter then return error
                 string it_str = string() + *it;
                 errorMsg("Expected integer found '" + it_str + "' instead.");
                 return 0;
             }
             reg_str += *it;
             
-            reg_num = stol(reg_str);
-            if(reg_num > 31){
+            reg_num = stol(reg_str); // set register number to found value
+            if(reg_num > 31){ // check that found value is not greater than 31 as mips only has 31 registers
                 errorMsg("Register numbers range between 0-31, found '" + to_string(reg_num) + "'.");
                 return 0;
             }
             
             it++;
         }
-        else{
+        else{ // any other characters must be errros
             string it_str = string() + *it;
             errorMsg("Invalid regiter name begining with '" + it_str + "'.");
             return 0;
@@ -395,7 +405,7 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
         break;
     }
 
-    if(comma_terminated ? *it != ',' : (paren_terminated ? *it != ')' : (it != end && *it != ' '))){
+    if(comma_terminated ? *it != ',' : (paren_terminated ? *it != ')' : (it != end && *it != ' '))){ // check register has proper delimiter
         string it_str = string() + *it;
         if(comma_terminated)
             errorMsg("Expected comma, found '" + it_str + "' instead.");
@@ -405,17 +415,20 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
             errorMsg("Expected space or end of line, found '" + it_str + "' instead.");
         return 0;
     }
-    if(comma_terminated || paren_terminated) it++;
+    if(comma_terminated || paren_terminated) it++; // consumer delimiter if necessary
 
     return reg_num;
 }
+// tool to get imediate field
+// ensures nothing comes after field
+// warns if field is more than 16 bits but allows value in a truncated mannor
 uint16_t Scanner::read_imm(string::iterator& it, string::iterator end, bool paren_terminated){
-    if(!is_numeric(*it)){
+    if(!is_numeric(*it)){ // check if first character is number
         errorMsg("Immediate parameter expects a constant.");
         return 0;
     }
-    uint32_t imm_32 = const_line(it, end, paren_terminated);
-    if(paren_terminated){
+    uint32_t imm_32 = const_line(it, end, paren_terminated); // use const line to obtain constant
+    if(paren_terminated){ // if parentesis delimited ensure presence and consume
         if(*it != '('){
             string it_str = string() + *it;
             errorMsg("Imediate parameter expected '(' character, found '" + it_str + "' instead.");
@@ -424,11 +437,12 @@ uint16_t Scanner::read_imm(string::iterator& it, string::iterator end, bool pare
         else it++;
     }
     uint16_t imm_16 = imm_32;
-    if(imm_16 != imm_32){
+    if(imm_16 != imm_32){ // check that constant fits in 16 bits and warn otherwise
         warnMsg("Imediate constant is greater than 16bits");
     }
     return imm_32;
 }
+// identical to read_imm but ensures 5 bit constant, and doesn't check for delimiters
 uint8_t Scanner::read_as(string::iterator& it, string::iterator end){
     if(!is_numeric(*it)){
         errorMsg("'as' field expects a constant.");
@@ -441,15 +455,18 @@ uint8_t Scanner::read_as(string::iterator& it, string::iterator end){
     }
     return as_5;
 }
+// tool to get label
+// returns error only if label is not valid format
+// labels must begin with a letter and only have letters, _'s and digits
 string Scanner::read_label(string::iterator& it, string::iterator end){
-    if(!is_alpha(*it)){
+    if(!is_alpha(*it)){ // check if first character is valid
         errorMsg("Label parameter invalid, name must begin with a letter");
         return "";
     }
     string label = string() + *it;
     it++;
-    for(;*it != ' ' && it != end; it++){
-        if(is_alpha_numeric(*it))
+    for(;*it != ' ' && it != end; it++){ // loop until white space
+        if(is_alpha_numeric(*it)) // check if valid character otherwise throw error
             label += *it;
         else{
             string it_str = string() + *it;
@@ -460,15 +477,22 @@ string Scanner::read_label(string::iterator& it, string::iterator end){
     return label;
 }
 
+// process instruction
 uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterator end, string& label){
-    if(op_map.find(instr) == op_map.end()){
+    if(op_map.find(instr) == op_map.end()){ // check if instruction is known
         errorMsg("Unkown instruction '" + instr + "'.");
         return 0;
     }
-    uint8_t op = op_map.at(instr);
+    uint8_t op = op_map.at(instr); // get instruction opcode
     uint32_t out = 0;
-    switch (op)
+    switch (op) // process opcode based on pattern
     {
+    // all patterns follow the same code logic
+    // they use the above tools to get correct values and form the final instruction binary
+    // they ensure that the format of the instruction is valid
+    // anytime any of the above finds an error return 0 as binary
+    // this is fine as the error flag is set to true and user of the scanner should check it before assuming that the output is valid
+
     // ArithLog
     case 0b100001: // ADD
     case 0b100100: // AND
@@ -478,21 +502,21 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b100011: // SUBU
     case 0b100110: // XOR
     {
-        uint8_t rd = read_reg(it, end, true);
+        uint8_t rd = read_reg(it, end, true); // read register
         if(error) return 0;
-        if(it == end){
+        if(it == end){ // ensure end hasn't been reached
             errorMsg("Not enough parameters passed to instruction.");
             return 0;
         }
-        skipWhiteSpace(it, end);
+        skipWhiteSpace(it, end); // skip any whitespace
         if(error) return 0;
-        uint8_t rs = read_reg(it, end, true);
+        uint8_t rs = read_reg(it, end, true); // read register
         if(error) return 0;
-        if(it == end){
+        if(it == end){ // ensure end hasn't been reached
             errorMsg("Not enough parameters passed to instruction.");
             return 0;
         }
-        skipWhiteSpace(it, end);
+        skipWhiteSpace(it, end); // etc...
         if(error) return 0;
         uint8_t rt = read_reg(it, end, false);
         if(error) return 0;
@@ -500,7 +524,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
             expectWhiteSpace(it, end);
             if(error) return 0;
         }
-        out |= rs;
+        out |= rs; // use data gathered to form instruction binary representation
         out = out << 5 | rt;
         out = out << 5 | rd;
         out = out << 11 | op;
@@ -818,15 +842,17 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     return out;
 }
 
+// takes the input of the line and processes every possible part
+// allows for labels first, and the processes remaining characters as either an instruction or constant
 void Scanner::scanLine(string in){
     string str = "";
 
-    auto it = in.begin();
+    auto it = in.begin(); // the whole program uses iterators to control flow
     for(; it != in.end(); it++){
         // if first thing is an instr
         if(str.size() > 0 && (*it) == ' '){
-            skipWhiteSpace(it, in.end());
-            string label = "";
+            skipWhiteSpace(it, in.end()); // skip any whitespace before arguments
+            string label = ""; // this is variable is passed to instr_line, and can by reference to be changed if label instruction is found
             tokens.push_back({str, instr_line(str, it, in.end(), label), line, memLine, label});
             memLine += 4;
             line++;
@@ -835,11 +861,11 @@ void Scanner::scanLine(string in){
         // if first thing is a label
         else if(str.size() > 0 && (*it) == ':'){
             labels.push_back({str, memLine, line, memLine, ""});
-            str = "";
+            str = ""; // reset str to "" to basically initialise the loop so it can find another label isntr or const line
             continue;
         }
         // if first thing is a constant
-        else if(str.size() == 0 && is_numeric(*it)){
+        else if(str.size() == 0 && is_numeric(*it)){ // constants must begin with constant
             tokens.push_back({"CONST", const_line(it, in.end()), line, memLine, ""});
             line++;
             memLine += 4;
@@ -849,14 +875,14 @@ void Scanner::scanLine(string in){
         if(is_alpha_numeric(*it)){
             str += *it;
         }
-        else if(*it != ' '){
+        else if(*it != ' '){ // we have already checked all valid inputs so anything else is an error
             string it_str = string() + *it;
             errorMsg("Unexpected character '" + it_str + "'.");
             line++;
             return;
         }
     }
-    if(str.size() != 0){
+    if(str.size() != 0){ // at the end a string should've been processed
         errorMsg("Unexpected token '" + str + "'.");
         line++;
         return;

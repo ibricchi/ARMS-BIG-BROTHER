@@ -7,6 +7,12 @@ CPU_VARIANT="bus"
 TESTCASES="./assembly/*.asm"
 C_TEST_FILES="./test_program/*.c"
 
+# Require SOURCE_DIRECTORY argument
+if [[ -z "${SOURCE_DIRECTORY}" ]] ; then
+   echo "FAIL: Missing SOURCE_DIRECTORY argument"
+   exit
+fi
+
 for i in ${TESTCASES} ; do
     TESTNAME=$(basename ${i} .asm)
     TEST_INSTRUCTION="$(grep -oE ^${INSTRUCTION} <<< ${TESTNAME})"

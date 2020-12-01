@@ -30,10 +30,5 @@ int fibbonacci(int n)
 
 int main()
 {
-    int n = 10;
-
-    for (int i = 0; i <= n; i++)
-    {
-        printf("%d ", fibbonacci(i));
-    }
+    return fibbonacci(10);
 }

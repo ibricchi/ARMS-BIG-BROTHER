@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eou pipefail
+set -eo pipefail
 
 CFILE="$1"
 
@@ -10,12 +10,12 @@ if [[ "$CFILE" == "" ]] ; then
 fi
 
 # compile c program
-g++ ../test/test_program/${CFILE}.c -o ../test/temp/${CFILE}
+g++ ./test_program/${CFILE}.c -o ./temp/${CFILE}
 
 # run c program and capture output
 set +e
-../test/temp/${CFILE}
+./temp/${CFILE}
 REFERENCE_OUT="$?"
 set -e
 
-echo "${REFERENCE_OUT}" > ../test/reference/${CFILE}.out
+echo "${REFERENCE_OUT}" > ./reference/${CFILE}.out

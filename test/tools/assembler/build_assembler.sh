@@ -1,3 +1,3 @@
 #!/bin/bash
 
-g++ assembler.cpp scanner.cpp -o ../bin/assembler
+g++ ./tools/assembler/assembler.cpp ./tools/assembler/scanner.cpp -o ./tools/bin/assembler

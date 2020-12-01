@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eo pipefail
+
 SOURCE_DIRECTORY="$1"
 INSTRUCTION="${2:-all}" # Run all testcases if no instruction is specified
 CPU_VARIANT="bus"
@@ -12,6 +14,9 @@ if [[ -z "${SOURCE_DIRECTORY}" ]] ; then
    echo "FAIL: Missing SOURCE_DIRECTORY argument"
    exit
 fi
+
+# Build all necessary tools
+./tools/build_tools.sh
 
 for i in ${TESTCASES} ; do
     TESTNAME=$(basename ${i} .asm)

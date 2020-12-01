@@ -20,8 +20,8 @@ fi
 
 for i in ${TESTCASES} ; do
     TESTNAME=$(basename ${i} .asm)
-    TEST_INSTRUCTION="$(grep -oE ^${INSTRUCTION} <<< ${TESTNAME})"
-    
+    TEST_INSTRUCTION="$(grep -oE ^$INSTRUCTION <<< $TESTNAME || true)" # '|| true prevents grep from exiting on no match'
+
     if [[ "$INSTRUCTION" == "$TEST_INSTRUCTION" ]] || [[ "$INSTRUCTION" == "all" ]] ; then
         ./run_one_testcase.sh ${SOURCE_DIRECTORY} ${CPU_VARIANT} ${TESTNAME} ${INSTRUCTION}
     fi

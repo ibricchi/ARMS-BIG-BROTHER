@@ -30,5 +30,6 @@ int fibbonacci(int n)
 
 int main()
 {
-    return fibbonacci(10);
+    int result = fibbonacci(10);
+    return result;
 }

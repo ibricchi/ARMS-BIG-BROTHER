@@ -11,16 +11,16 @@ module RAM_avalon(
 
 // setup memory data
 parameter RAM_INIT_FILE = "";
-logic [15:0] memory [4095:0];
+logic [32:0] memory [4294967295:0];
 initial begin
     integer i;
-    for(i = 0; i < 4096; i++) begin
+    for(i = 0; i < 4294967296; i++) begin
         memory[i] = 0;
     end
     // load contents from file
     if(RAM_INIT_FILE != "") begin
         $display("RAM: INIT: Loading Ram contents from %s", RAM_INIT_FILE);
-        $readmemh(RAM_INIT_FILE, memory);)
+        $readmemh(RAM_INIT_FILE, memory, 3217031168);
     end
 end
 

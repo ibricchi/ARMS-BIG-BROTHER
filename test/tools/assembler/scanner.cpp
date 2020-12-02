@@ -378,7 +378,7 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
         if(is_numeric(*it)){
             string reg_str = string() + *it;
             it++;
-            if(comma_terminated ? *it == ',' : (paren_terminated ? *it == ')' : (it == end || *it == ' '))){ // check if expected terminator has been found, this indicates a single digit register, single digit will never be > 32 so just return value
+            if((comma_terminated && *it == ',') || (paren_terminated && *it == ')') || (!(comma_terminated || paren_terminated) && (it == end || *it == ' '))){ // check if expected terminator has been found, this indicates a single digit register, single digit will never be > 32 so just return value
                 if(comma_terminated || paren_terminated) it++; // consume non space delimiter
                 return stol(reg_str);
             }
@@ -405,7 +405,7 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
         break;
     }
 
-    if(comma_terminated ? *it != ',' : (paren_terminated ? *it != ')' : (it != end && *it != ' '))){ // check register has proper delimiter
+    if((comma_terminated && *it != ',') || (paren_terminated && *it != ')') || (!(comma_terminated || paren_terminated) && (it != end && *it != ' '))){ // check register has proper delimiter
         string it_str = string() + *it;
         if(comma_terminated)
             errorMsg("Expected comma, found '" + it_str + "' instead.");

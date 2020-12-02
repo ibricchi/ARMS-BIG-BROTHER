@@ -14,3 +14,5 @@ module mips_cpu_bus(
     output logic[3:0] byteenable,
     input logic[31:0] readdata
 );
+
+endmodule

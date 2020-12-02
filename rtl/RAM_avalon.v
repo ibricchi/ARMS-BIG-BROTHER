@@ -1,20 +1,21 @@
 module RAM_avalon(
-    input logic clk;
+    input logic clk,
     input logic[31:0] address,
     input logic[3:0] byteenable,
     input logic read,
     input logic write,
     output logic waitrequest,
-    output logic[31:0] readdata
-    input logic[31:0] writedata,
+    output logic[31:0] readdata,
+    input logic[31:0] writedata
 );
 
 // setup memory data
 parameter RAM_INIT_FILE = "";
-logic [32:0] memory [4294967295:0];
+// cannot simulate full memory on verilog ideally would be  4294967296 or 4Gb
+logic [32:0] memory [65535:0];
 initial begin
     integer i;
-    for(i = 0; i < 4294967296; i++) begin
+    for(i = 0; i < 65536; i++) begin
         memory[i] = 0;
     end
     // load contents from file
@@ -28,11 +29,11 @@ end
 logic finished_request;
 
 // internal managing logic
-logic [31:0] data;
+logic[31:0] data;
 
 // logic debug for wait cycles
-logic cycleCount[5:0];
-logic waitCount[5:0];
+logic[5:0] cycleCount;
+logic[5:0] waitCount;
 
 // initialise registers
 initial begin
@@ -46,10 +47,10 @@ end
 always @(posedge clk) begin
     if(waitrequest) begin // if we're currently waiting for something
         if(finished_request) begin // check if request is completed
-            cycleCount <= 0;
+            cycleCount[5:0] <= 0;
             waitrequest <= 0;
             if(read) begin // if read then return requested data
-                writedata <= data;
+                readdata <= data;
             end
             else begin // if write then change memory
                 memory[address] <= writedata;
@@ -59,7 +60,7 @@ always @(posedge clk) begin
             cycleCount <= cycleCount + 1;
         end
     end
-    else 
+    else begin
         if(read | write) begin // start wait request if read or write is high and not already in wait request
             waitrequest <= 1;
         end
@@ -70,7 +71,7 @@ end
 always_comb begin
     if(cycleCount >= waitCount) begin
         finished_request = 1;
-        data = memory[address];
+        data[31:0] = memory[address];
     end
 end
 

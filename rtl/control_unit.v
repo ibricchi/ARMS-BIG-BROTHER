@@ -2,22 +2,30 @@
 module control_unit(
     input logic[5:0] opcode,
     input logic[3:0] state,
+
+    /*
+    certain outputs can remain constant as they do not alter the state of the cpu
+    they may cause calculations to run but as long as nothing is stored anywhere it doesn't matter
+    state based instruction require the cpu to be in a specific state to ensure functionallity
+    this is resereved for anything writing
+    due to using an avalon interface, uncecessary reads will also cause stalls in the cpu so these two nead to be state based
+    */
     
-    output logic[1:0] ALUOp,    // constant
-    output logic      ALUSrc,   // constant
+    output logic[1:0] ALUOp,    // constant     // see alu_contol for explanation of each possible value
+    output logic      ALUSrc,   // constant     // if high ALU source is from instruction 16 bit imm, otherwise from registers
 
-    output logic      jump,     // constant
-    output logic      branch,   // constant
+    output logic      jump,     // constant     // if high jump to position from isntruction imediate, otherwise advance from pc+4
+    output logic      branch,   // constant     // if high allow conditional branchin if alu has zero flag set to high. PC will coniditionally be set to PC+4 if not zero, and pc + instruction immediate otherwise
 
-    output logic      memread,  // state based
-    output logic      memwrite, // state based
+    output logic      memread,  // state based  // ask memroy for a read
+    output logic      memwrite, // state based  // inform memory of a write
 
-    output logic      regdst,   // constant
-    output logic      memtoreg, // constant
-    output logic      regwrite  // state based
+    output logic      regdst,   // constant     // changes the write register to be bits 15-11 of instr if high, and bits 25-21 otherwise
+    output logic      memtoreg, // constant     // if high pass memroy to write data for register, othewise pass alu output
+    output logic      regwrite  // state based  // if high allow writign to register
 
-    output logic      inwrite,  // state based
-    output logic      pctoadd   // constant
+    output logic      inwrite,  // state based  // if high allow writing to instr register
+    output logic      pctoadd   // constant     // if high pass PC to memory address otehrwise pass alu output
 );
 
 logic halt;
@@ -45,21 +53,25 @@ always_comb begin
     end
     else begin
         case(opcode)
-            6'b000000: begin /* arithmetic */  
-                ALUOp[1:0] = 2'b10;
-                ALUSrc     = 0;
-                jump       = 0;
-                branch     = 0;
-                memread    = 0;
-                memwrite   = 0;
-                regdst     = 1; // reg dst is set 
-                memtoreg   = 0;
-                regwrite   = 1 & exec2;
-                instren    = 0;
-                pctoaddress= 0;
+            /*
+                I will break down the reason for every output value for the arithmetic instructions
+                the same logic was used to deduce the outpu for every other instruction
+            */
+            6'b000000: begin /* arithmetic */
+                ALUOp[1:0] = 2'b10; // this is the alu control that tells the alu to process based on function field of instr
+                ALUSrc     = 0; // the alu must read form register
+                jump       = 0; // the pc must recieve data from normal +4 increment of pc
+                branch     = 0; // same as reason as above
+                memread    = 0; // we don't want the cpu to stall for unecessary read
+                memwrite   = 0; // we are not writing to the memory
+                regdst     = 1; // we want to write to the register in bits 15-11 of the cpu
+                memtoreg   = 0; // we want the alu data to be sent to the register write data
+                regwrite   = 1 & exec2; // we only want to allow writing to register when we can confirm correct data is in place
+                instren    = 0; // we don't want instr register to be overwritten
+                pctoaddress= 0; // we don't actually care what happens here
             end
             6'b100011: begin /* lw */
-                ALUOp[1:0] = 2'b00;
+                ALUOp[1:0] = 2'b00; 
                 ALUSrc     = 1;
                 jump       = 0;
                 branch     = 0;

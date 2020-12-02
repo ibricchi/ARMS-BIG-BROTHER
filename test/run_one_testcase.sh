@@ -8,7 +8,7 @@ TESTCASE="$3"
 INSTRUCTION="$4" # only used for printing to stdout
 IS_C_PROGRAM="${5:-no}" # 'yes' or 'no' (default is 'no')
 
-ASSEMBLER_PATH="./" # SPECIFY THIS!
+ASSEMBLER_PATH="./tools/bin/assembler" # SPECIFY THIS!
 REFERENCE_SIMULATOR_PATH="./" # SPECIFY THIS!
 
 if [[ "$IS_C_PROGRAM" == "yes" ]] ; then
@@ -20,7 +20,7 @@ elif [[ "$IS_C_PROGRAM" == "no" ]] ; then
    >&2 echo "Test MIPS ${CPU_VARIANT} using test-case ${TESTCASE}"
 
    >&2 echo "  1 - Assembling test case"
-   ASSEMBLER_PATH < ./assembly/${TESTCASE}.asm > ./binary/${TESTCASE}.hex
+   $ASSEMBLER_PATH < ./assembly/${TESTCASE}.asm > ./binary/${TESTCASE}.hex
 else
    >&2 echo "FAIL: Invalid 'IS_C_PROGRSM' argument: $IS_C_PROGRAM"
    exit
@@ -28,8 +28,9 @@ fi
 
 >&2 echo "  2 - Compiling test-bench"
 iverilog -g 2012 \
-   SOURCE_DIRECTORY/*.v \ # maybe need to add RAM file here (depending on implementation)
+   $SOURCE_DIRECTORY/*.v \ # maybe need to add RAM file here (depending on implementation)
    -s mips_cpu_${VARIANT}_tb \ # we are including all .v files in SOURCE_DIRECTORY and hence need to be exact about which VARIANT to test here
+   -Pmips_cpu_${VaRIANT}_tb.RAM_INIT_FILE="./binary/${TESTCASE}.hex"
    -o ./simulator/mips_cpu_${VARIANT}_tb_${TESTCASE}
 
 >&2 echo "  3 - Running test-bench"
@@ -46,7 +47,7 @@ fi
 >&2 echo "  4 - Running reference simulator"
 set +e
 # might need to modify the input to REFERENCE_SIMULATOR_PATH, depending on how REFERENCE_SIMULATOR is implemented
-REFERENCE_SIMULATOR_PATH < ./binary/${TESTCASE}.hex > ./reference/${TESTCASE}.out
+$REFERENCE_SIMULATOR_PATH < ./binary/${TESTCASE}.hex > ./reference/${TESTCASE}.out
 set -e
 
 >&2 echo "  5 - Comparing output"

@@ -29,15 +29,15 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"BEQ",     0b1000100}, // Branch branch have extra 1 at the begining to avoid conflicts
     {"BGEZ",    0b11100001}, // Other BranchZ other branchz have 3 extra 1's at the begining to avoid conflict
     {"BGEZAL",  0b11110001}, // Other BranchZ 
-    {"BGTZ",    0b000111}, // BranchZ branch z have extra 1 at the begining to avoid conflicts
-    {"BLEZ",    0b000110}, // BranchZ
-    {"BLTZ",    0b000001}, // BranchZ
+    {"BGTZ",    0b1000111}, // BranchZ branch z have extra 1 at the begining to avoid conflicts
+    {"BLEZ",    0b1000110}, // BranchZ
+    {"BLTZ",    0b1000001}, // BranchZ
     {"BLTZAL",  0b11110000}, // Other BranchZ 
     {"BNE",     0b1000101}, // Branch
     {"DIV",     0b011010},
     {"DIVU",    0b011011},
     {"J",       0b1000010}, // Jump jump have extra 1 at the begining to avoid conflicts
-    {"JALR",    0b001001}, // JumpR
+    //{"JALR",    0b001001}, // JumpR
     {"JAL",     0b1000011}, // Jump
     {"JR",      0b001000},
     {"LB",      0b1100000}, // LoadStore load stores have extra 1 at the begining to avoid conflicts
@@ -778,6 +778,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b1100100: // LBU
     case 0b1100001: // LH
     case 0b1100101: // LHU
+    case 0b1100011: // LW
     case 0b1100010: //LWL
     case 0b1100110: //LWR
     case 0b1101000: // SB

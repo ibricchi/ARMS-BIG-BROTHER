@@ -22,16 +22,16 @@ Scanner::Scanner(){
 }
 const unordered_map<string, uint8_t> Scanner::op_map = {
     //{OP_NAME, Special, OPCODE, RS, RT, RD, IMM}
-    {"ADDIU",   0b001001},
+    {"ADDIU",   0b1001001}, // ADDIU has extra 1 at the begining to avoid clonflict
     {"ADDU",    0b100001},
     {"AND",     0b100100},
     {"ANDI",    0b001100},
     {"BEQ",     0b1000100}, // Branch branch have extra 1 at the begining to avoid conflicts
     {"BGEZ",    0b11100001}, // Other BranchZ other branchz have 3 extra 1's at the begining to avoid conflict
     {"BGEZAL",  0b11110001}, // Other BranchZ 
-    {"BGTZ",    0b000111}, // BranchZ branch z have extra 1 at the begining to avoid conflicts
-    {"BLEZ",    0b000110}, // BranchZ
-    {"BLTZ",    0b000001}, // BranchZ
+    {"BGTZ",    0b1000111}, // BranchZ branch z have extra 1 at the begining to avoid conflicts
+    {"BLEZ",    0b1000110}, // BranchZ
+    {"BLTZ",    0b1000001}, // BranchZ
     {"BLTZAL",  0b11110000}, // Other BranchZ 
     {"BNE",     0b1000101}, // Branch
     {"DIV",     0b011010},
@@ -215,7 +215,7 @@ uint32_t Scanner::const_line(string::iterator& it, string::iterator end, bool al
 }
 // tool to get register number
 // specific required delimiters are checked for and consumer , and ) if required 
-uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma_terminated, bool paren_terminated){
+uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma_terminated, bool paren_terminated, bool comma_or_white_terminated){
     if(*it != '$'){ // registers must begin with a $ symbol
         errorMsg("Expected a register.");
         return 0;
@@ -378,7 +378,7 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
         if(is_numeric(*it)){
             string reg_str = string() + *it;
             it++;
-            if(comma_terminated ? *it == ',' : (paren_terminated ? *it == ')' : (it == end || *it == ' '))){ // check if expected terminator has been found, this indicates a single digit register, single digit will never be > 32 so just return value
+            if(((comma_terminated|comma_or_white_terminated) && *it == ',') || (paren_terminated && *it == ')') || (!(comma_terminated || paren_terminated) && (it == end || *it == ' '))){ // check if expected terminator has been found, this indicates a single digit register, single digit will never be > 32 so just return value
                 if(comma_terminated || paren_terminated) it++; // consume non space delimiter
                 return stol(reg_str);
             }
@@ -405,7 +405,7 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
         break;
     }
 
-    if(comma_terminated ? *it != ',' : (paren_terminated ? *it != ')' : (it != end && *it != ' '))){ // check register has proper delimiter
+    if((comma_terminated | (comma_or_white_terminated && (it != end && *it != ' ')) && *it != ',') || (paren_terminated && *it != ')') || (!(comma_terminated || paren_terminated) && (it != end && *it != ' '))){ // check register has proper delimiter
         string it_str = string() + *it;
         if(comma_terminated)
             errorMsg("Expected comma, found '" + it_str + "' instead.");
@@ -621,6 +621,41 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         out = out << 11 | op;
         break;
     }
+    // JumpR
+    case 0b001001: // JALR
+    {
+        uint8_t rdors = read_reg(it, end, false, false, true);
+        if(error) return 0;
+        if(it == end || *it == ' '){
+            if(it != end){
+                expectWhiteSpace(it, end);
+                if(error) return 0;
+            }
+            out |= rdors; // as rs
+            out = out << 10 | 31;
+            out = out << 11 | op;
+        }
+        else if(*it == ','){
+            it++;
+            skipWhiteSpace(it, end);
+            if(error) return 0;
+            uint8_t rs = read_reg(it, end, false);
+            if(error) return 0;
+            if(it != end){
+                expectWhiteSpace(it, end);
+                if(error) return 0;
+            }
+            out |= rs;
+            out = out << 10 | rdors; // as rd
+            out = out << 11 | op;
+        }
+        else{
+            string it_str = string() + *it;
+            errorMsg("Unexpected character '" + it_str + "'.");
+            if(error) return 0;
+        }
+        break;
+    }
     // JumpMoveTo
     case 0b001000: // JR
     case 0b010001: // MTHI
@@ -637,7 +672,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         break;
     }
     // ArithLogI
-    case 0b001001: // ADDIU
+    case 0b1001001: // ADDIU
     case 0b001100: // ANDI
     case 0b001101: // ORI
     case 0b001010: // SLTI
@@ -778,6 +813,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b1100100: // LBU
     case 0b1100001: // LH
     case 0b1100101: // LHU
+    case 0b1100011: // LW
     case 0b1100010: //LWL
     case 0b1100110: //LWR
     case 0b1101000: // SB

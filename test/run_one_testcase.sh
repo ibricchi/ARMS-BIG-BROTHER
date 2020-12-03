@@ -8,9 +8,12 @@ TESTCASE="$3"
 INSTRUCTION="$4" # only used for printing to stdout
 IS_C_PROGRAM="${5:-no}" # 'yes' or 'no' (default is 'no')
 
+<<<<<<< HEAD
 ASSEMBLER_PATH="./tools/bin/assembler" # SPECIFY THIS!
 REFERENCE_SIMULATOR_PATH="./" # SPECIFY THIS!
 
+=======
+>>>>>>> Add correct assemler and reference simulator paths to 'run_one_testcase.sh'
 if [[ "$IS_C_PROGRAM" == "yes" ]] ; then
    >&2 echo "Test MIPS ${CPU_VARIANT} using test-program ${TESTCASE}"
 
@@ -20,7 +23,11 @@ elif [[ "$IS_C_PROGRAM" == "no" ]] ; then
    >&2 echo "Test MIPS ${CPU_VARIANT} using test-case ${TESTCASE}"
 
    >&2 echo "  1 - Assembling test case"
+<<<<<<< HEAD
    $ASSEMBLER_PATH < ./assembly/${TESTCASE}.asm > ./binary/${TESTCASE}.hex
+=======
+   ./tools/bin/assembler < ./assembly/${TESTCASE}.asm > ./binary/${TESTCASE}.hex
+>>>>>>> Add correct assemler and reference simulator paths to 'run_one_testcase.sh'
 else
    >&2 echo "FAIL: Invalid 'IS_C_PROGRSM' argument: $IS_C_PROGRAM"
    exit
@@ -53,7 +60,7 @@ $REFERENCE_SIMULATOR_PATH < ./binary/${TESTCASE}.hex > ./reference/${TESTCASE}.o
 if [[ "$IS_C_PROGRAM" == "yes" ]] ; then
    ./tools/reference_simulator/c_program_reference_simulator.sh ${TESTCASE}
 else
-   ./tools/reference_simulator/bin/asm_reference_simulator < ./binary/${TESTCASE}.hex > ./reference/${TESTCASE}.out
+   ./tools/bin/asm_reference_simulator < ./binary/${TESTCASE}.hex > ./reference/${TESTCASE}.out
 fi
 >>>>>>> Add files needed for the assembly reference simulator
 set -e

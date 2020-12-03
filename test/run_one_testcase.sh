@@ -42,9 +42,17 @@ iverilog -g 2012 \
 
 >&2 echo "  3 - Running test-bench"
 set +e
-./simulator/mips_cpu_${VARIANT}_tb_${TESTCASE} > ./output/mips_cpu_${VARIANT}_tb_${TESTCASE}.out
+./simulator/mips_cpu_${VARIANT}_tb_${TESTCASE} > ./output/mips_cpu_${VARIANT}_tb_${TESTCASE}.stdout
 RESULT=$?
 set -e
+
+>&2 echo "     Extracting final register_v0 value"
+PATTERN="TB: INFO: register_v0 = " ./output/mips_cpu_${VARIANT}_tb_${TESTCASE}.stdout > ./output/mips_cpu_${VARIANT}_tb_${TESTCASE}.out-v0-lines
+set +e
+grep "${PATTERN}" 
+set -e
+NOTHING=""
+sed -e "s/${PATTERN}/${NOTHING}/" ./output/mips_cpu_${VARIANT}_tb_${TESTCASE}.out-v0-lines > ./output/mips_cpu_${VARIANT}_tb_${TESTCASE}.out-v0
 
 if [[ "${RESULT}" -ne 0 ]] ; then
    echo "${TESTCASE} ${INSTRUCTION} Fail"
@@ -60,14 +68,14 @@ $REFERENCE_SIMULATOR_PATH < ./binary/${TESTCASE}.hex > ./reference/${TESTCASE}.o
 if [[ "$IS_C_PROGRAM" == "yes" ]] ; then
    ./tools/reference_simulator/c_program_reference_simulator.sh ${TESTCASE}
 else
-   ./tools/bin/asm_reference_simulator < ./binary/${TESTCASE}.hex > ./reference/${TESTCASE}.out
+   ./tools/bin/asm_reference_simulator < ./binary/${TESTCASE}.hex > ./reference/${TESTCASE}.out-v0
 fi
 >>>>>>> Add files needed for the assembly reference simulator
 set -e
 
 >&2 echo "  5 - Comparing output"
 set +e
-diff -w ./reference/${TESTCASE}.out ./output/mips_cpu_${VARIANT}_tb_${TESTCASE}.out
+diff -w ./reference/${TESTCASE}.out-v0 ./output/mips_cpu_${VARIANT}_tb_${TESTCASE}.out-v0
 RESULT=$?
 set -e
 

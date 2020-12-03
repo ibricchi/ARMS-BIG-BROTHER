@@ -18,4 +18,4 @@ set +e
 REFERENCE_OUT="$?"
 set -e
 
-echo "${REFERENCE_OUT}" > ./reference/${CFILE}.out
+echo "${REFERENCE_OUT}" > ./reference/${CFILE}.out-v0

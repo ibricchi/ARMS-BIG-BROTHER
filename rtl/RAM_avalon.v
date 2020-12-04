@@ -29,26 +29,28 @@ end
     integer waitcycle;
     integer i;
 
-    always @(posedge clk) begin
-        if(read == 1)begin 
-            waitcycle = $urandom_range(0,3);
-            waitrequest = 1;
-            for(i = 0; i< waitcycle; i++)begin 
-                @(posedge clk);
+    initial begin
+        repeat(1000)begin
+            @(posedge clk);
+            if(read == 1)begin 
+                waitcycle = $urandom_range(0,3);
+                waitrequest = 1;
+                for(i = 0; i< waitcycle; i++)begin 
+                    @(posedge clk);
+                end 
+                readdata = memory[address];
+                waitrequest = 0;
             end 
-            readdata = memory[address];
-            waitrequest = 0;
-        end 
-        if(write == 1)begin 
-            waitcycle = $urandom_range(0,3);
-            waitrequest = 1;
-            for(i = 0; i< waitcycle; i++)begin 
-                @(posedge clk);
+            if(write == 1)begin 
+                waitcycle = $urandom_range(0,3);
+                waitrequest = 1;
+                for(i = 0; i< waitcycle; i++)begin 
+                    @(posedge clk);
+                end 
+                memory[address] <= writedata;
+                waitrequest = 0;
             end 
-            memory[address] <= writedata;
-            waitrequest = 0;
         end 
-
     end
 
 

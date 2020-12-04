@@ -2,7 +2,7 @@ module mips_cpu_bus_tb;
     timeunit 1ns / 10ps;
 
     parameter RAM_INIT_FILE = "";
-    parameter TIMEOUT_CYCLES = 30;
+    parameter TIMEOUT_CYCLES = 20;
 
     logic clk;
     logic reset;

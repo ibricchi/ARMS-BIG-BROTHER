@@ -49,7 +49,9 @@ end
 always_ff @(posedge clk) begin
     if(waitrequest) begin // if we're currently waiting for something
         if(finished_request) begin // check if request is completed
+            // $display("finished request ", read, " ", write);
             if(read) begin // if read then return requested data
+                // $display("setting readddata", data);
                 readdata <= data;
             end
             else begin // if write then change memory
@@ -66,6 +68,7 @@ end
 
 // start wait request if read or write is high and not already in wait request
 always_ff @(posedge read) begin
+    // $display("read based interrupt ", read);
     waitrequest <= 1;
 end
 always_ff @(posedge write) begin
@@ -74,7 +77,7 @@ end
 
 // this will wait for cycleCount to be equal to or aboce waitcount and then set data to the correct value
 always_comb begin
-    address = addressin - 3217031168;
+    address = (addressin - 3217031168)>>2;
     if(cycleCount >= waitCount) begin
         finished_request = 1;
         data[31:0] = memory[address];

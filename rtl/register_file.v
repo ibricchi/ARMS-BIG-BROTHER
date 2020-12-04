@@ -23,7 +23,6 @@ module register_file(
         end
         else begin
             if(write_enable) begin
-                $display("Setting reg ", write_reg, " to ", write_data);
                 register[write_reg] <= write_data;
             end
         end

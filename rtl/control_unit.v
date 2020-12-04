@@ -36,8 +36,6 @@ logic decode;
 logic exec1;
 logic exec2;
 
-
-
 always_comb begin
     //default settings for R-format instructions
 
@@ -48,12 +46,13 @@ always_comb begin
     exec2 = state==4;
     
     pcwrite = exec2;
+
     if(fetch) begin // in fetch send pc to address
         inwrite = 0;
         pctoadd = 1;
         memread = 1;
     end
-    if(decode) begin // in decode store instruction
+    else if(decode) begin // in decode store instruction
         inwrite = 1;
         pctoadd = 1;
         memread = 0;
@@ -130,7 +129,7 @@ always_comb begin
                 memtoreg   = 0;
                 regwrite   = 0;
                 inwrite    = 0;
-                pctoadd= 0;
+                pctoadd    = 0;
             end
 
             6'b000011: begin /* jal */

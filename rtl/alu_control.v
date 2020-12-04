@@ -9,8 +9,8 @@ logic[3:0] func;
 
 always_comb begin
     case(FuncCode)
-        6'b100000: func = 4'b0010; //add
-        6'b100010: func = 4'b0110; //sub
+        6'b100001: func = 4'b0010; //addu
+        6'b100011: func = 4'b0110; //subu
         6'b100101: func = 4'b0001; //or
         6'b100110: func = 4'b1101; //xor
         6'b100111: func = 4'b1100; //nor

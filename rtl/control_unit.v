@@ -48,14 +48,30 @@ always_comb begin
     pcwrite = exec2;
 
     if(fetch) begin // in fetch send pc to address
-        inwrite = 0;
-        pctoadd = 1;
-        memread = 1;
+        ALUOp[1:0] = 2'b00;
+        ALUSrc     = 0;
+        jump       = 0;
+        branch     = 0;
+        memread    = 1;
+        memwrite   = 0;
+        regdst     = 0;
+        memtoreg   = 0;
+        regwrite   = 0;
+        inwrite    = 0;
+        pctoadd    = 1;
     end
     else if(decode) begin // in decode store instruction
-        inwrite = 1;
-        pctoadd = 1;
-        memread = 0;
+        ALUOp[1:0] = 2'b00;
+        ALUSrc     = 0;
+        jump       = 0;
+        branch     = 0;
+        memread    = 0;
+        memwrite   = 0;
+        regdst     = 0;
+        memtoreg   = 0;
+        regwrite   = 0;
+        inwrite    = 1;
+        pctoadd    = 1;
     end
     else begin
         case(opcode)

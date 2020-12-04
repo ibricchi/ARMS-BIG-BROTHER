@@ -9,7 +9,8 @@ module register_file(
     input logic[31:0] write_data,
     
     output logic[31:0] read_data1,
-    output logic[31:0] read_data2
+    output logic[31:0] read_data2,
+    output logic[31:0] register_v0
 );
 
     logic[31:0] register[31:0];
@@ -24,11 +25,13 @@ module register_file(
         else begin
             if(write_enable) begin
                 register[write_reg] <= write_data;
+                $display("Setting reg ", write_reg, " to ", write_data);
             end
         end
     end
 
     assign read_data1 = (read_index1 == 0)? 32'b0 : register[read_index1];
     assign read_data2 = (read_index2 == 0)? 32'b0 : register[read_index2];
+    assign register_v0 = register[0];
 
 endmodule

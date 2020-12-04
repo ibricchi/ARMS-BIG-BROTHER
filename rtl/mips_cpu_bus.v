@@ -117,7 +117,8 @@ register_file reg_file_0(
     .write_data(write_data),
 
     .read_data1(read_data1),
-    .read_data2(read_data2)
+    .read_data2(read_data2),
+    .register_v0(register_v0)
 );
 
 logic[31:0] extend_out;
@@ -163,7 +164,7 @@ logic and_result;
 assign and_result = branch && zero;
 
 //MUX4 location
-assign pc_in = (and_result == 0) ? pc_out : add_out;
+assign pc_in = jump ? (instr[25:0] << 2) - 4 : (and_result ? add_out : pc_out);
 
 //logic[31:0] readdata
 //from data memory

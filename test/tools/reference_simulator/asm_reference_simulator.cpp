@@ -76,8 +76,14 @@ uint32_t simulateMIPS(vector<uint32_t> &memory, const uint32_t memInstructionSta
 {
     const uint32_t maxUint32t = 0xFFFFFFFF;
 
-    uint32_t pc = 0;
+    uint32_t pc = memInstructionStartIdx;
     array<uint32_t, 32> regs{};
+
+    // attempting to execute address 0 causes the CPU to halt
+    if (pc == 0)
+    {
+        return regs[2]; // $v0 final value (register_v0 MIPS output)
+    }
 
     while (true)
     {

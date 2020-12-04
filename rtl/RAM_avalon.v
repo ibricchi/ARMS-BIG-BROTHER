@@ -47,7 +47,7 @@ end
                 for(i = 0; i< waitcycle; i++)begin 
                     @(posedge clk);
                 end 
-                memory[address] <= writedata;
+                memory[address] = writedata;
                 waitrequest = 0;
             end 
         end 

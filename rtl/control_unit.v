@@ -22,7 +22,7 @@ module control_unit(
 
     output logic      regdst,   // constant     // changes the write register to be bits 15-11 of instr if high, and bits 25-21 otherwise
     output logic      memtoreg, // constant     // if high pass memroy to write data for register, othewise pass alu output
-    output logic      regwrite  // state based  // if high allow writign to register
+    output logic      regwrite,  // state based  // if high allow writign to register
 
     output logic      inwrite,  // state based  // if high allow writing to instr register
     output logic      pctoadd   // constant     // if high pass PC to memory address otehrwise pass alu output
@@ -44,12 +44,12 @@ always_comb begin
     exec2 = state==4;
 
     if(fetch) begin // in fetch send pc to address
-        instren = 0;
-        pctoaddress = 1;
+        inwrite = 0;
+        pctoadd = 1;
     end
     if(decode) begin // in decode store instruction
-        instren = 1;
-        pctoaddress = 1;
+        inwrite = 1;
+        pctoadd = 1;
     end
     else begin
         case(opcode)
@@ -67,8 +67,8 @@ always_comb begin
                 regdst     = 1; // we want to write to the register in bits 15-11 of the cpu
                 memtoreg   = 0; // we want the alu data to be sent to the register write data
                 regwrite   = 1 & exec2; // we only want to allow writing to register when we can confirm correct data is in place
-                instren    = 0; // we don't want instr register to be overwritten
-                pctoaddress= 0; // we don't actually care what happens here
+                inwrite    = 0; // we don't want instr register to be overwritten
+                pctoadd= 0; // we don't actually care what happens here
             end
             6'b100011: begin /* lw */
                 ALUOp[1:0] = 2'b00; 
@@ -80,8 +80,8 @@ always_comb begin
                 regdst     = 0;
                 memtoreg   = 1;
                 regwrite   = 1 & exec2;
-                instren    = 0;
-                pctoaddress= 0;
+                inwrite    = 0;
+                pctoadd= 0;
             end
 
             6'b101011: begin /* sw */
@@ -94,8 +94,8 @@ always_comb begin
                 regdst     = 1; 
                 memtoreg   = 0;
                 regwrite   = 0;
-                instren    = 0;
-                pctoaddress= 0;
+                inwrite    = 0;
+                pctoadd= 0;
             end
 
             6'b000100: begin /* beq */
@@ -108,8 +108,8 @@ always_comb begin
                 regdst     = 0; 
                 memtoreg   = 0;
                 regwrite   = 0;
-                instren    = 0;
-                pctoaddress= 0;
+                inwrite    = 0;
+                pctoadd= 0;
             end
 
             6'b000010: begin /* j */
@@ -122,8 +122,8 @@ always_comb begin
                 regdst     = 0; 
                 memtoreg   = 0;
                 regwrite   = 0;
-                instren    = 0;
-                pctoaddress= 0;
+                inwrite    = 0;
+                pctoadd= 0;
             end
 
             6'b000011: begin /* jal */
@@ -136,8 +136,8 @@ always_comb begin
                 regdst     = 0; 
                 memtoreg   = 0;
                 regwrite   = 1 & exec2;
-                instren    = 0;
-                pctoaddress= 0;
+                inwrite    = 0;
+                pctoadd= 0;
             end
         endcase
     end

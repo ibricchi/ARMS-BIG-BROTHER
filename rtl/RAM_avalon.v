@@ -1,6 +1,6 @@
 module RAM_avalon(
     input logic clk,
-    input logic[31:0] address,
+    input logic[31:0] addressin,
     input logic[3:0] byteenable,
     input logic read,
     input logic write,
@@ -9,22 +9,24 @@ module RAM_avalon(
     input logic[31:0] writedata
 );
 
+assign address = addressin - 3217031168;
+
 // setup memory data
 parameter RAM_INIT_FILE = "";
 // cannot simulate full memory on verilog ideally would be  4294967296 or 4Gb
-logic [32:0] memory [65535:0];
+reg [31:0] memory [4095:0];
 initial begin
     integer i;
-    for(i = 0; i < 65536; i++) begin
-        memory[i] = 0;
+    /* Initialise to zero by default */
+    for (i=0; i<4096; i++) begin
+        memory[i]=0;
     end
-    // load contents from file
-    if(RAM_INIT_FILE != "") begin
-        $display("RAM: INIT: Loading Ram contents from %s", RAM_INIT_FILE);
-        $readmemh(RAM_INIT_FILE, memory, 3217031168);
+    /* Load contents from file if specified */
+    if (RAM_INIT_FILE != "") begin
+        $display("RAM : INIT : Loading RAM contents from %s", RAM_INIT_FILE);
+        $readmemh(RAM_INIT_FILE, memory);
     end
 end
-
 // used to determine whether or not the request is completed
 logic finished_request;
 

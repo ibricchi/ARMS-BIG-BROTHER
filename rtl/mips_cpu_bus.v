@@ -19,12 +19,14 @@ module mips_cpu_bus(
 logic[3:0] state;
 initial begin
     state = 0;
+    active = 0;
 end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
+            active <= 1;
         end
         1: begin // FETCH
             state <= 2;
@@ -39,6 +41,13 @@ always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low cha
             state <= 5;
         end
     endcase
+end
+
+always_ff @(posedge clk) begin
+    if(address == 0) begin
+        active <= 0;
+        state <= 0; // halt
+    end
 end
 
 //instruction register not yet implemented
@@ -147,7 +156,7 @@ assign pc_in = (and_result == 0) ? pc_out : add_out;
 
 //logic[31:0] readdata
 //from data memory
-assign address = pctoadd?pc_out:ALU_out
+assign address = pctoadd?pc_out:ALU_out;
 
 //MUX3
 assign write_data = (memtoreg == 0) ? ALU_out : readdata;

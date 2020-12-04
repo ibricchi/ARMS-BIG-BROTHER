@@ -44,7 +44,7 @@ private:
     void skipWhiteSpace(std::string::iterator&, std::string::iterator);
 
     // instruction line helper tools
-    uint8_t read_reg(std::string::iterator&, std::string::iterator, bool=false, bool=false);
+    uint8_t read_reg(std::string::iterator&, std::string::iterator, bool=false, bool=false, bool=false);
     uint16_t read_imm(std::string::iterator&, std::string::iterator, bool=false);
     uint8_t read_as(std::string::iterator&, std::string::iterator);
     std::string read_label(std::string::iterator&, std::string::iterator);

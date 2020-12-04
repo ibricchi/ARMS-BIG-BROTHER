@@ -274,6 +274,7 @@ uint32_t simulateMIPS(vector<uint32_t> &memory, const uint32_t memInstructionSta
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             regs[tReg] = memory[regs[sReg] + immediate];
+            pc += 4;
             break;
         }
         case 0b101000: // SB

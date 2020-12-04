@@ -165,6 +165,9 @@ uint32_t simulateMIPS(vector<uint32_t> &memory, const uint32_t memInstructionSta
             }
             case 0b001000: // JR
             {
+                uint32_t sReg;
+                tie(ignore, sReg, ignore, ignore) = decodeArithmeticType(instruction);
+                pc = regs[sReg];
                 break;
             }
             case 0b010001: // MTHI
@@ -186,9 +189,10 @@ uint32_t simulateMIPS(vector<uint32_t> &memory, const uint32_t memInstructionSta
         }
         case 0b001001: // ADDIU
         {
-            uint32_t destinationReg, argumentReg, immediate;
-            tie(destinationReg, argumentReg, immediate) = decodeImmediateType(instruction);
-            regs[destinationReg] = regs[argumentReg] + immediate;
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            regs[tReg] = regs[sReg] + immediate;
+            pc += 4;
             break;
         }
         case 0b001100: // ANDI
@@ -259,6 +263,13 @@ uint32_t simulateMIPS(vector<uint32_t> &memory, const uint32_t memInstructionSta
         {
             break;
         }
+        case 0b100011: // LW
+        {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            regs[tReg] = memory[regs[sReg] + immediate];
+            break;
+        }
         case 0b101000: // SB
         {
             break;
@@ -269,6 +280,10 @@ uint32_t simulateMIPS(vector<uint32_t> &memory, const uint32_t memInstructionSta
         }
         case 0b101011: // SW
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            memory[regs[sReg] + immediate] = regs[tReg];
+            pc += 4;
             break;
         }
         case 0b000010: // J
@@ -291,11 +306,21 @@ uint32_t simulateMIPS(vector<uint32_t> &memory, const uint32_t memInstructionSta
     return regs[2]; // $v0 final value (register_v0 MIPS output)
 }
 
+tuple<uint32_t, uint32_t, uint32_t, uint32_t> decodeArithmeticType(uint32_t instruction)
+{
+    uint32_t constant = (instruction >> 6) && 0b11111;
+    uint32_t dReg = (instruction >> 11) && 0b11111;
+    uint32_t tReg = (instruction >> 16) && 0b11111;
+    uint32_t sReg = (instruction >> 21) && 0b11111;
+
+    return {dReg, sReg, tReg, constant};
+}
+
 tuple<uint32_t, uint32_t, uint32_t> decodeImmediateType(uint32_t instruction)
 {
-    uint32_t destinationReg = (instruction >> 16) && 0b11111;
-    uint32_t argumentReg = (instruction >> 21) && 0b11111;
+    uint32_t tReg = (instruction >> 16) && 0b11111;
+    uint32_t sReg = (instruction >> 21) && 0b11111;
     uint32_t immediate = instruction && 0xFFFF;
 
-    return {destinationReg, argumentReg, immediate};
+    return {tReg, sReg, immediate};
 }

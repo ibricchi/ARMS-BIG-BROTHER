@@ -16,9 +16,15 @@ vector<uint32_t> readMemoryBinary(istream &src, const uint32_t memInstructionSta
 // Output: Returns the final value inside register $v0 (register_v0).
 uint32_t simulateMIPS(vector<uint32_t> &memory, const uint32_t memInstructionStartIdx);
 
-// Out[0] = destination register address
-// Out[1] = argument register address
-// Out[2] = immediate value
+// Out[0] = d register address
+// Out[1] = s register address
+// Out[2] = t register address
+// Out[3] = 5 bit constant (a)
+tuple<uint32_t, uint32_t, uint32_t, uint32_t> decodeArithmeticType(uint32_t instruction);
+
+// Out[0] = t register address
+// Out[1] = s register address
+// Out[2] = immediate value (i)
 tuple<uint32_t, uint32_t, uint32_t> decodeImmediateType(uint32_t instruction);
 
 #endif

@@ -9,7 +9,7 @@ module RAM_avalon(
     input logic[31:0] writedata
 );
 
-assign address = addressin - 3217031168;
+logic[31:0] address;
 
 // setup memory data
 parameter RAM_INIT_FILE = "";
@@ -46,34 +46,41 @@ initial begin
     waitCount = 4;
 end
 
-always @(posedge clk) begin
+always_ff @(posedge clk) begin
     if(waitrequest) begin // if we're currently waiting for something
         if(finished_request) begin // check if request is completed
-            cycleCount[5:0] <= 0;
-            waitrequest <= 0;
             if(read) begin // if read then return requested data
                 readdata <= data;
             end
             else begin // if write then change memory
                 memory[address] <= writedata;
             end
+            cycleCount[5:0] <= 0;
+            waitrequest <= 0;
         end
         else begin // otherwise increase cycle count (this is to simulate waiting)
             cycleCount <= cycleCount + 1;
         end
     end
-    else begin
-        if(read | write) begin // start wait request if read or write is high and not already in wait request
-            waitrequest <= 1;
-        end
-    end
+end
+
+// start wait request if read or write is high and not already in wait request
+always_ff @(posedge read) begin
+    waitrequest <= 1;
+end
+always_ff @(posedge write) begin
+    waitrequest <= 1;
 end
 
 // this will wait for cycleCount to be equal to or aboce waitcount and then set data to the correct value
 always_comb begin
+    address = addressin - 3217031168;
     if(cycleCount >= waitCount) begin
         finished_request = 1;
         data[31:0] = memory[address];
+    end
+    else begin
+        finished_request = 0;
     end
 end
 

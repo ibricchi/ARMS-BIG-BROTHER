@@ -25,7 +25,9 @@ module control_unit(
     output logic      regwrite,  // state based  // if high allow writign to register
 
     output logic      inwrite,  // state based  // if high allow writing to instr register
-    output logic      pctoadd   // constant     // if high pass PC to memory address otehrwise pass alu output
+    output logic      pctoadd,   // constant     // if high pass PC to memory address otehrwise pass alu output
+
+    output logic      pcwrite
 );
 
 logic halt;
@@ -33,6 +35,8 @@ logic fetch;
 logic decode;
 logic exec1;
 logic exec2;
+
+
 
 always_comb begin
     //default settings for R-format instructions
@@ -42,14 +46,17 @@ always_comb begin
     decode = state==2;
     exec1 = state==3;
     exec2 = state==4;
-
+    
+    pcwrite = exec2;
     if(fetch) begin // in fetch send pc to address
         inwrite = 0;
         pctoadd = 1;
+        memread = 1;
     end
     if(decode) begin // in decode store instruction
         inwrite = 1;
         pctoadd = 1;
+        memread = 0;
     end
     else begin
         case(opcode)
@@ -75,7 +82,7 @@ always_comb begin
                 ALUSrc     = 1;
                 jump       = 0;
                 branch     = 0;
-                memread    = 1 & exec1;
+                memread    = 1 & (exec1);
                 memwrite   = 0;
                 regdst     = 0;
                 memtoreg   = 1;

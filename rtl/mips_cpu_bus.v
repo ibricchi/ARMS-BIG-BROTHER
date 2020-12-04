@@ -38,13 +38,15 @@ always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low cha
             state <= 4;
         end
         4: begin // EXEC2
-            state <= 5;
+            state <= 1;
         end
     endcase
+    // debug code
+    $display("address: ", state, " ", instr, " ", pc_out - 3217031168, " ", readdata, " ");
 end
 
-always_ff @(posedge clk) begin
-    if(address == 0) begin
+always_ff @(posedge clk) begin // check if pc is at 0 and terminate
+    if(state!=0 & pc_out == 0) begin
         active <= 0;
         state <= 0; // halt
     end
@@ -52,19 +54,21 @@ end
 
 //instruction register not yet implemented
 //here I just created a logic 32-bit component as instruction
-logic[31:0] instr;
+logic[31:0] instr, instr_reg;
 logic[31:0] pc_in, pc_out;
+logic pcwrite;
 
 pc pc_0(
     .clk(clk),
     .reset(reset),
     .pc_in(pc_in),
+    .pcwrite(pcwrite),
     .pc_out(pc_out)
 );
 
 //control unit (not updated yet)
 logic[1:0] ALUOp;
-logic ALUSrc, jump, branch, memread, memwrite, regdst, memtoreg, regwrite, inwrite, pctoadd;
+logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd;
 
 control_unit control_0(
     .opcode(instr[31:26]),
@@ -73,21 +77,23 @@ control_unit control_0(
     .ALUSrc(ALUSrc),
     .jump(jump),
     .branch(branch),
-    .memread(memread),
-    .memwrite(memwrite),
+    .memread(read),
+    .memwrite(write),
     .regdst(regdst),
     .memtoreg(memtoreg),
     .regwrite(regwrite),
     .inwrite(inwrite),
-    .pctoadd(pctoadd)
+    .pctoadd(pctoadd),
+    .pcwrite(pcwrite)
 );
 
 // instr register
 always_ff @(posedge clk) begin
     if(inwrite) begin
-        instr <= readdata;
+        instr_reg <= readdata;
     end
 end
+assign instr = (state==2)?readdata:instr_reg;
 
 //register file
 logic[31:0] read_data1, read_data2;

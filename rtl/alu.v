@@ -18,6 +18,7 @@ always_comb begin
         4'b1101: result = a ^ b; //XOR
         default: result = 0;
     endcase
+    $display("a: ", a, " b: ", b, " ", alu_control);
 end
 
 assign zero = (result == 0);

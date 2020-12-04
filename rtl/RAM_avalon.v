@@ -25,54 +25,82 @@ initial begin
     end
 end
 
-// used to determine whether or not the request is completed
-logic finished_request;
+/*      Setting up assisting variables      */
+    integer waitcycle;
+    integer i;
 
-// internal managing logic
-logic[31:0] data;
+    always @(posedge clk) begin
+        if(read == 1)begin 
+            waitcycle = $urandom_range(0,3);
+            waitrequest = 1;
+            for(i = 0; i< waitcycle; i++)begin 
+                @(posedge clk);
+            end 
+            readdata = memory[address];
+            waitrequest = 0;
+        end 
+        if(write == 1)begin 
+            waitcycle = $urandom_range(0,3);
+            waitrequest = 1;
+            for(i = 0; i< waitcycle; i++)begin 
+                @(posedge clk);
+            end 
+            memory[address] <= writedata;
+            waitrequest = 0;
+        end 
 
-// logic debug for wait cycles
-logic[5:0] cycleCount;
-logic[5:0] waitCount;
+    end
+
+
+
+// // used to determine whether or not the request is completed
+// logic finished_request;
+
+// // internal managing logic
+// logic[31:0] data;
+
+// // logic debug for wait cycles
+// logic[5:0] cycleCount;
+// logic[5:0] waitCount;
 
 // initialise registers
-initial begin
-    waitrequest = 0;
-    readdata = 0;
+// initial begin
+//     waitrequest = 0;
+//     readdata = 0;
 
-    cycleCount = 0;
-    waitCount = 4;
-end
+//     cycleCount = 0;
+//     waitCount = 4;
+// end
 
-always @(posedge clk) begin
-    if(waitrequest) begin // if we're currently waiting for something
-        if(finished_request) begin // check if request is completed
-            cycleCount[5:0] <= 0;
-            waitrequest <= 0;
-            if(read) begin // if read then return requested data
-                readdata <= data;
-            end
-            else begin // if write then change memory
-                memory[address] <= writedata;
-            end
-        end
-        else begin // otherwise increase cycle count (this is to simulate waiting)
-            cycleCount <= cycleCount + 1;
-        end
-    end
-    else begin
-        if(read | write) begin // start wait request if read or write is high and not already in wait request
-            waitrequest <= 1;
-        end
-    end
-end
+// always @(posedge clk) begin
+//     if(waitrequest) begin // if we're currently waiting for something
+//         if(finished_request) begin // check if request is completed
+//             cycleCount[5:0] <= 0;
+//             waitrequest <= 0;
+//             if(read) begin // if read then return requested data
+//                 readdata <= data;
+//             end
+//             else begin // if write then change memory
+//                 memory[address] <= writedata;
+//             end
+//         end
+//         else begin // otherwise increase cycle count (this is to simulate waiting)
+//             cycleCount <= cycleCount + 1;
+//         end
+//     end
+//     else begin
+//         if(read | write) begin // start wait request if read or write is high and not already in wait request
+//             waitrequest <= 1;
+//         end
+//     end
+// end
 
-// this will wait for cycleCount to be equal to or aboce waitcount and then set data to the correct value
-always_comb begin
-    if(cycleCount >= waitCount) begin
-        finished_request = 1;
-        data[31:0] = memory[address];
-    end
-end
+// // this will wait for cycleCount to be equal to or aboce waitcount and then set data to the correct value
+// always_comb begin
+//     if(cycleCount >= waitCount) begin
+//         finished_request = 1;
+//         data[31:0] = memory[address];
+//     end
+// end
 
 endmodule

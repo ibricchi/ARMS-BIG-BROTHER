@@ -43,6 +43,12 @@ vector<uint32_t> readMemoryBinary(istream &src, const uint32_t memInstructionSta
             line.pop_back();
         }
 
+        // Remove leading 0x if exists
+        if (line.substr(0, 2) == "0x")
+        {
+            line = line.substr(2);
+        }
+
         // A line should be exactly 4 bytes (8 hex symbols)
         if (line.size() != 8)
         {
@@ -66,7 +72,7 @@ vector<uint32_t> readMemoryBinary(istream &src, const uint32_t memInstructionSta
         assert(currentMemAddress <= maxUint32t);
         memory[currentMemAddress] = memLineData;
 
-        currentMemAddress++;
+        currentMemAddress += 4; // byte indexing
     }
 
     return memory;
@@ -79,13 +85,7 @@ uint32_t simulateMIPS(vector<uint32_t> &memory, const uint32_t memInstructionSta
     uint32_t pc = memInstructionStartIdx;
     array<uint32_t, 32> regs{};
 
-    // attempting to execute address 0 causes the CPU to halt
-    if (pc == 0)
-    {
-        return regs[2]; // $v0 final value (register_v0 MIPS output)
-    }
-
-    while (true)
+    while (pc != 0) // attempting to execute address 0 causes the CPU to halt
     {
         assert(pc <= maxUint32t);
 
@@ -314,19 +314,19 @@ uint32_t simulateMIPS(vector<uint32_t> &memory, const uint32_t memInstructionSta
 
 tuple<uint32_t, uint32_t, uint32_t, uint32_t> decodeArithmeticType(uint32_t instruction)
 {
-    uint32_t constant = (instruction >> 6) && 0b11111;
-    uint32_t dReg = (instruction >> 11) && 0b11111;
-    uint32_t tReg = (instruction >> 16) && 0b11111;
-    uint32_t sReg = (instruction >> 21) && 0b11111;
+    uint32_t constant = (instruction >> 6) & 0b11111;
+    uint32_t dReg = (instruction >> 11) & 0b11111;
+    uint32_t tReg = (instruction >> 16) & 0b11111;
+    uint32_t sReg = (instruction >> 21) & 0b11111;
 
     return {dReg, sReg, tReg, constant};
 }
 
 tuple<uint32_t, uint32_t, uint32_t> decodeImmediateType(uint32_t instruction)
 {
-    uint32_t tReg = (instruction >> 16) && 0b11111;
-    uint32_t sReg = (instruction >> 21) && 0b11111;
-    uint32_t immediate = instruction && 0xFFFF;
+    uint32_t tReg = (instruction >> 16) & 0b11111;
+    uint32_t sReg = (instruction >> 21) & 0b11111;
+    uint32_t immediate = instruction & 0xFFFF;
 
     return {tReg, sReg, immediate};
 }

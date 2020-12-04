@@ -1,6 +1,6 @@
 module data_mem(
     input logic        clk,
-    input logic[6:0]   address,
+    input logic[31:0]   address,
     input logic[31:0]  writedata,
     input logic        memwrite,
     input logic        memread,
@@ -8,7 +8,7 @@ module data_mem(
     output logic[31:0] readdata
 );
 
-logic [31:0] Mem[0:127]; //32 bits mem with 128 entries
+logic [31:0] Mem[0:127]; //32 bits mem with 128 entries //TODO: not 128 entries
 
 initial begin
     Mem[0] = 5;

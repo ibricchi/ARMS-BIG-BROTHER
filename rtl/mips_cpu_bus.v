@@ -15,3 +15,113 @@ module mips_cpu_bus(
     input logic[31:0] readdata
 );
 
+//instruction register not yet implemented
+//here I just created a logic 32-bit component as instruction
+logic[31:0] instr;
+logic[31:0] pc_in, pc_out;
+
+pc pc_0(
+    .clk(clk),
+    .reset(reset),
+    .pc_in(pc_in),
+    .pc_out(pc_out)
+);
+
+//control unit (not updated yet)
+logic[1:0] ALUOp;
+logic ALUSrc, jump, branch, memread, memwrite, regdst, memtoreg, regwrite;
+
+control_unit control_0(
+    .opcode(instr[31:26]),
+    .ALUOp(ALUOp),
+    .ALUSrc(ALUSrc),
+    .jump(jump),
+    .branch(branch),
+    .memread(memread),
+    .memwrite(memwrite),
+    .regdst(regdst),
+    .memtoreg(memtoreg),
+    .regwrite(regwrite)
+);
+
+//register file
+logic[31:0] read_data1, read_data2;
+logic[4:0] write_reg;
+logic[31:0] write_data;
+assign write_reg = (regdst == 0) ? instr[20:16] : instr[15:11];
+
+register_file reg_file_0(
+    .clk(clk),
+    .reset(reset),
+
+    .read_index1(instr[25:21]),
+    .read_index2(instr[20:16]),
+    .write_enable(regwrite),
+    .write_reg(write_reg),
+    .write_data(write_data),
+
+    .read_data1(read_data1),
+    .read_data2(read_data2)
+);
+
+logic[31:0] extend_out;
+assign extend_out = {16'h0000, instr[15:0]};
+
+logic[31:0] alu_b;
+assign alu_b = (ALUSrc == 0) ? read_data2 : extend_out;
+
+//shift left 2
+logic[31:0] shift_out;
+assign shift_out = extend_out << 2;
+
+//ALU Control
+logic[3:0] ALUCtrl;
+alu_control alu_ctrl_0(
+    .ALUOp(ALUOp),
+    .FuncCode(instr[5:0]),
+    .ALUCtrl(ALUCtrl)
+);
+
+//ALU
+logic zero;
+logic[31:0] ALU_out;
+
+alu alu_0(
+    .a(read_data1),
+    .b(alu_b),
+    .alu_control(ALUCtrl),
+    .result(ALU_out),
+    .zero(zero)
+);
+
+//Add ALU
+logic[31:0] add_out;
+
+add_alu add_alu_0(
+    .pc_out(pc_out),
+    .shift_out(shift_out),
+    .out(add_out)
+);
+
+logic and_result;
+assign and_result = branch && zero;
+
+//MUX4 location
+assign pc_in = (and_result == 0) ? pc_out : add_out;
+
+//logic[31:0] readdata
+//from data memory
+data_mem data_0(
+    .clk(clk),
+    .address(ALU_out),
+    .writedata(read_data2),
+    .memwrite(memwrite),
+    .memread(memread),
+    //output is readdata
+    .readdata(readdata)
+);
+
+//MUX3
+assign write_data = (memtoreg == 0) ? ALU_out : readdata;
+
+endmodule

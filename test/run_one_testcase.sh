@@ -26,7 +26,7 @@ fi
 >&2 echo "  2 - Compiling test-bench"
 iverilog -g 2012 \
    $SOURCE_DIRECTORY/*.v \
-   -s mips_cpu_${CPU_VARIANT}_tb \ # we are including all .v files in SOURCE_DIRECTORY and hence need to be exact about which CPU_VARIANT to test here
+   -s mips_cpu_${CPU_VARIANT}_tb \
    -P mips_cpu_${CPU_VARIANT}_tb.RAM_INIT_FILE=\"./test/binary/${TESTCASE}.hex\" \
    -o ./test/simulator/mips_cpu_${CPU_VARIANT}_tb_${TESTCASE}
 

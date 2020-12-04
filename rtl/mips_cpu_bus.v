@@ -15,6 +15,32 @@ module mips_cpu_bus(
     input logic[31:0] readdata
 );
 
+// setup state machine
+logic[3:0] state;
+initial begin
+    state = 0;
+end
+
+always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
+    if(!waitrequest) case(state)
+        0: begin // HALT
+            state <= 1;
+        end
+        1: begin // FETCH
+            state <= 2;
+        end
+        2: begin // DECODE
+            state <= 3;
+        end
+        3: begin // EXEC1
+            state <= 4;
+        end
+        4: begin // EXEC2
+            state <= 5;
+        end
+    endcase
+end
+
 //instruction register not yet implemented
 //here I just created a logic 32-bit component as instruction
 logic[31:0] instr;
@@ -29,10 +55,11 @@ pc pc_0(
 
 //control unit (not updated yet)
 logic[1:0] ALUOp;
-logic ALUSrc, jump, branch, memread, memwrite, regdst, memtoreg, regwrite;
+logic ALUSrc, jump, branch, memread, memwrite, regdst, memtoreg, regwrite, inwrite, pctoadd;
 
 control_unit control_0(
     .opcode(instr[31:26]),
+    .state(state),
     .ALUOp(ALUOp),
     .ALUSrc(ALUSrc),
     .jump(jump),
@@ -41,8 +68,17 @@ control_unit control_0(
     .memwrite(memwrite),
     .regdst(regdst),
     .memtoreg(memtoreg),
-    .regwrite(regwrite)
+    .regwrite(regwrite),
+    .inwrite(inwrite),
+    .pctoadd(pctoadd)
 );
+
+// instr register
+always_ff @(posedge clk) begin
+    if(inwrite) begin
+        instr <= readdata;
+    end
+end
 
 //register file
 logic[31:0] read_data1, read_data2;
@@ -111,15 +147,7 @@ assign pc_in = (and_result == 0) ? pc_out : add_out;
 
 //logic[31:0] readdata
 //from data memory
-data_mem data_0(
-    .clk(clk),
-    .address(ALU_out),
-    .writedata(read_data2),
-    .memwrite(memwrite),
-    .memread(memread),
-    //output is readdata
-    .readdata(readdata)
-);
+assign address = pctoadd?pc_out:ALU_out
 
 //MUX3
 assign write_data = (memtoreg == 0) ? ALU_out : readdata;

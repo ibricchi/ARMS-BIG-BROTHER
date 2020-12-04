@@ -1,6 +1,7 @@
 #ifndef ASM_REFERENCE_SIMULATOR_HPP
 #define ASM_REFERENCE_SIMULATOR_HPP
 
+#include <tuple>
 #include <vector>
 #include <iostream>
 
@@ -14,5 +15,10 @@ vector<uint32_t> readMemoryBinary(istream &src, const uint32_t memInstructionSta
 // Input: Receives a vector that represents the initial memory.
 // Output: Returns the final value inside register $v0 (register_v0).
 uint32_t simulateMIPS(vector<uint32_t> &memory, const uint32_t memInstructionStartIdx);
+
+// Out[0] = destination register address
+// Out[1] = argument register address
+// Out[2] = immediate value
+tuple<uint32_t, uint32_t, uint32_t> decodeImmediateType(uint32_t instruction);
 
 #endif

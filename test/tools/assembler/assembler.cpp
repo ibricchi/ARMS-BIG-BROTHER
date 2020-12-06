@@ -72,7 +72,7 @@ int main(){
     // cout generated file (if error first output is "ERROR:")
     if(scanError) cout << "ERROR:" << endl;
     for(Token instr : *scanner.getTokensAddr()){
-        cout << "0x" << hex << setfill('0') << setw(8) << instr.data << endl;
+        cout << hex << setfill('0') << setw(8) << instr.data << endl;
     }
 }
 

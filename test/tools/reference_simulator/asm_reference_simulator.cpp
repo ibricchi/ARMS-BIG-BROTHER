@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <unordered_map>
 
 using namespace std;
 
@@ -13,7 +14,7 @@ int main()
 {
     const uint32_t memInstructionStartIdx = 0xBFC00000;
 
-    vector<uint32_t> memory = readMemoryBinary(cin, memInstructionStartIdx);
+    unordered_map<uint32_t, uint32_t> memory = readMemoryBinary(cin, memInstructionStartIdx);
 
     uint32_t register_v0 = simulateMIPS(memory, memInstructionStartIdx);
 
@@ -22,10 +23,10 @@ int main()
     cout << register_v0 << endl;
 }
 
-vector<uint32_t> readMemoryBinary(istream &src, const uint32_t memInstructionStartIdx)
+unordered_map<uint32_t, uint32_t> readMemoryBinary(istream &src, const uint32_t memInstructionStartIdx)
 {
     const uint32_t maxUint32t = 0xFFFFFFFF;
-    vector<uint32_t> memory(maxUint32t, 0);
+    unordered_map<uint32_t, uint32_t> memory;
 
     uint32_t currentMemAddress = memInstructionStartIdx;
     string line{};
@@ -78,7 +79,7 @@ vector<uint32_t> readMemoryBinary(istream &src, const uint32_t memInstructionSta
     return memory;
 }
 
-uint32_t simulateMIPS(vector<uint32_t> &memory, const uint32_t memInstructionStartIdx)
+uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t memInstructionStartIdx)
 {
     const uint32_t maxUint32t = 0xFFFFFFFF;
 

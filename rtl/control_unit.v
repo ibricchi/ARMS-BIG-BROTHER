@@ -106,7 +106,21 @@ always_comb begin
                 pctoadd    = 0; // we don't actually care what happens here
                 regtojump  = regjump; // we want high on a register jump instr
             end
-            6'b100011: begin /* lw */ // !TODO test
+            6'b001001: begin /* addiu */
+                ALUOp[1:0] = 2'b00; 
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+            end
+            6'b100011: begin /* lw */
                 ALUOp[1:0] = 2'b00; 
                 ALUSrc     = 1;
                 jump       = 0;
@@ -120,7 +134,7 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
             end
-            6'b101011: begin /* sw */ // !TODO test
+            6'b101011: begin /* sw */
                 ALUOp[1:0] = 2'b00;
                 ALUSrc     = 1;
                 jump       = 0;

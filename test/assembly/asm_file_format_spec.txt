@@ -1,0 +1,10 @@
+All assembly files in this directory require the following format. Otherwise, the 'asm_reference_simulator.sh' 
+might produce an invalid reference output for them.
+
+Format requirements:
+
+- Must load the final value into register $v0
+- All instructions should contribute somehow to correct state of the final value that will be stored in $v0
+- A failing instruction should lead to an incorrect final value ($v0)
+
+See 'addiu_1.asm' as an example of a valid assembly file.

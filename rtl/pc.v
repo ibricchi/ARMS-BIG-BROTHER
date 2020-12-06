@@ -12,7 +12,7 @@ always_ff @(posedge clk) begin
         pc_out <= 3217031168;
     end
     else if(pcwrite) begin
-        pc_out <= pc_in + 4;
+        pc_out <= pc_in;
     end
 end
 

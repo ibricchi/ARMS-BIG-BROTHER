@@ -164,7 +164,7 @@ logic and_result;
 assign and_result = branch && zero;
 
 //MUX4 location
-assign pc_in = jump ? (instr[25:0] << 2) - 4 : (and_result ? add_out : pc_out);
+assign pc_in = jump ? (instr[25:0] << 2) : (and_result ? add_out : (pc_out + 4));
 
 //logic[31:0] readdata
 //from data memory

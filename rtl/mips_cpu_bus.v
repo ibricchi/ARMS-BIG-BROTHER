@@ -24,7 +24,7 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " Readdata: ", readdata, " pc_in: ", pc_in - 3217031168, " regtojump: ", regtojump);
+    $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " Readdata: ", readdata, " read: ", read, " address", address);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
@@ -79,6 +79,7 @@ control_unit control_0(
     .opcode(instr[31:26]),
     .state(state),
     .fun(instr[5:0]),
+    .waitrequest(waitrequest),
     .ALUOp(ALUOp),
     .ALUSrc(ALUSrc),
     .jump(jump),
@@ -170,9 +171,11 @@ assign pc_in = jump ?
     (regtojump ? read_data1 : (instr[25:0] << 2)) :
     (and_result ? add_out : (pc_out + 4));
 
-//logic[31:0] readdata
 //from data memory
 assign address = pctoadd?pc_out:ALU_out;
+
+//writedata always second output of register
+assign writedata = read_data2;
 
 //MUX3
 assign write_data = (memtoreg == 0) ? ALU_out : readdata;

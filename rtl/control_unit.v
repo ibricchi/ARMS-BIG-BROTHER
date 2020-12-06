@@ -3,6 +3,7 @@ module control_unit(
     input logic[5:0] opcode,
     input logic[3:0] state,
     input logic[5:0] fun,
+    input logic waitrequest,
 
     /*
     certain outputs can remain constant as they do not alter the state of the cpu
@@ -55,7 +56,7 @@ always_comb begin
     arith = fun == 6'b100001 | fun == 6'b100100 | fun == 6'b100101 | fun == 6'b101010 | fun == 6'b101011 | fun == 6'b100011 | fun == 6'b100110;
     regjump = fun == 6'b001001 | fun == 6'b001000;
     
-    pcwrite = exec2;
+    pcwrite = exec2 & !waitrequest;
 
     if(fetch) begin // in fetch send pc to address
         ALUOp[1:0] = 2'b00;

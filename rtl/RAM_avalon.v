@@ -77,7 +77,7 @@ end
 
 // this will wait for cycleCount to be equal to or aboce waitcount and then set data to the correct value
 always_comb begin
-    address = (addressin - 3217031168)>>2;
+    address = ((addressin - 3217031168)>>2)%4096;
     if(cycleCount >= waitCount) begin
         finished_request = 1;
         data[31:0] = memory[address];

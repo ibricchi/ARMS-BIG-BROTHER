@@ -32,6 +32,6 @@ module register_file(
 
     assign read_data1 = (read_index1 == 0)? 32'b0 : register[read_index1];
     assign read_data2 = (read_index2 == 0)? 32'b0 : register[read_index2];
-    assign register_v0 = register[0];
+    assign register_v0 = register[2];
 
 endmodule

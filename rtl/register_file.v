@@ -20,12 +20,11 @@ module register_file(
             for(int i = 0; i < 32; i = i + 1) begin
                 register[i] <= 0;
             end
-            register[1] <= 1;
         end
         else begin
             if(write_enable) begin
                 register[write_reg] <= write_data;
-                $display("Setting reg ", write_reg, " to ", write_data);
+                // $display("Setting reg ", write_reg, " to ", write_data);
             end
         end
     end

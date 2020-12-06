@@ -1,0 +1,12 @@
+All c programs in this directory require the following format. Otherwise, the 'c_program_reference_simulator.sh' 
+might produce an invalid reference output for them.
+
+Format requirements:
+
+- Must contain a main function
+- They should not contain any IO statements such as 'printf()'. 
+    All communication with the outside world is done though the final return statement.
+- The program's final result must be stored inside a variable
+- This variable must be returned from the main function (Do no return a function call)
+
+See 'fibonacci.c' as an example of a valid c program.

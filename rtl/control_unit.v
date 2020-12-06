@@ -2,6 +2,7 @@
 module control_unit(
     input logic[5:0] opcode,
     input logic[3:0] state,
+    input logic[5:0] fun,
 
     /*
     certain outputs can remain constant as they do not alter the state of the cpu
@@ -27,14 +28,20 @@ module control_unit(
     output logic      inwrite,  // state based  // if high allow writing to instr register
     output logic      pctoadd,   // constant     // if high pass PC to memory address otehrwise pass alu output
 
-    output logic      pcwrite
+    output logic      pcwrite,
+    output logic      regtojump
 );
 
+// states
 logic halt;
 logic fetch;
 logic decode;
 logic exec1;
 logic exec2;
+
+// functions
+logic arith;
+logic regjump;
 
 always_comb begin
     //default settings for R-format instructions
@@ -44,6 +51,9 @@ always_comb begin
     decode = state==2;
     exec1 = state==3;
     exec2 = state==4;
+
+    arith = fun == 6'b100001 | fun == 6'b100100 | fun == 6'b100101 | fun == 6'b101010 | fun == 6'b101011 | fun == 6'b100011 | fun == 6'b100110;
+    regjump = fun == 6'b001001 | fun == 6'b001000;
     
     pcwrite = exec2;
 
@@ -59,6 +69,7 @@ always_comb begin
         regwrite   = 0;
         inwrite    = 0;
         pctoadd    = 1;
+        regtojump  = 0;
     end
     else if(decode) begin // in decode store instruction
         ALUOp[1:0] = 2'b00;
@@ -72,6 +83,7 @@ always_comb begin
         regwrite   = 0;
         inwrite    = 1;
         pctoadd    = 1;
+        regtojump  = 0;
     end
     else begin
         case(opcode)
@@ -82,17 +94,18 @@ always_comb begin
             6'b000000: begin /* arithmetic */
                 ALUOp[1:0] = 2'b10; // this is the alu control that tells the alu to process based on function field of instr
                 ALUSrc     = 0; // the alu must read form register
-                jump       = 0; // the pc must recieve data from normal +4 increment of pc
+                jump       = regjump; // the pc must recieve data from normal +4 increment of pc unless we have a reg jump instr
                 branch     = 0; // same as reason as above
                 memread    = 0; // we don't want the cpu to stall for unecessary read
                 memwrite   = 0; // we are not writing to the memory
                 regdst     = 1; // we want to write to the register in bits 15-11 of the cpu
                 memtoreg   = 0; // we want the alu data to be sent to the register write data
-                regwrite   = 1 & exec2; // we only want to allow writing to register when we can confirm correct data is in place
+                regwrite   = arith & exec2; // we only want to allow writing to register when we can confirm correct data is in place
                 inwrite    = 0; // we don't want instr register to be overwritten
-                pctoadd= 0; // we don't actually care what happens here
+                pctoadd    = 0; // we don't actually care what happens here
+                regtojump  = regjump; // we want high on a register jump instr
             end
-            6'b100011: begin /* lw */
+            6'b100011: begin /* lw */ // !TODO test
                 ALUOp[1:0] = 2'b00; 
                 ALUSrc     = 1;
                 jump       = 0;
@@ -103,10 +116,10 @@ always_comb begin
                 memtoreg   = 1;
                 regwrite   = 1 & exec2;
                 inwrite    = 0;
-                pctoadd= 0;
+                pctoadd    = 0;
+                regtojump  = 0;
             end
-
-            6'b101011: begin /* sw */
+            6'b101011: begin /* sw */ // !TODO test
                 ALUOp[1:0] = 2'b00;
                 ALUSrc     = 1;
                 jump       = 0;
@@ -117,10 +130,10 @@ always_comb begin
                 memtoreg   = 0;
                 regwrite   = 0;
                 inwrite    = 0;
-                pctoadd= 0;
+                pctoadd    = 0;
+                regtojump  = 0;
             end
-
-            6'b000100: begin /* beq */
+            6'b000100: begin /* beq */ // !TODO test
                 ALUOp[1:0] = 2'b01;
                 ALUSrc     = 0;
                 jump       = 0;
@@ -131,9 +144,9 @@ always_comb begin
                 memtoreg   = 0;
                 regwrite   = 0;
                 inwrite    = 0;
-                pctoadd= 0;
+                pctoadd    = 0;
+                regtojump  = 0;
             end
-
             6'b000010: begin /* j */
                 ALUOp[1:0] = 2'b00;
                 ALUSrc     = 0;
@@ -146,9 +159,9 @@ always_comb begin
                 regwrite   = 0;
                 inwrite    = 0;
                 pctoadd    = 0;
+                regtojump  = 0;
             end
-
-            6'b000011: begin /* jal */
+            6'b000011: begin /* jal */ // !TODO test
                 ALUOp[1:0] = 2'b00;
                 ALUSrc     = 0;
                 jump       = 1;
@@ -159,7 +172,8 @@ always_comb begin
                 memtoreg   = 0;
                 regwrite   = 1 & exec2;
                 inwrite    = 0;
-                pctoadd= 0;
+                pctoadd    = 0;
+                regtojump  = 0;
             end
         endcase
     end

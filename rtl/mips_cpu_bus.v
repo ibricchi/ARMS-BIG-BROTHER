@@ -24,7 +24,7 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-    $display("address: ", state, " ", instr, " ", pc_out - 3217031168, " ", readdata, " ", read);
+    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " Readdata: ", readdata, " pc_in: ", pc_in - 3217031168, " regtojump: ", regtojump);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
@@ -73,11 +73,12 @@ pc pc_0(
 
 //control unit (not updated yet)
 logic[1:0] ALUOp;
-logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd;
+logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump;
 
 control_unit control_0(
     .opcode(instr[31:26]),
     .state(state),
+    .fun(instr[5:0]),
     .ALUOp(ALUOp),
     .ALUSrc(ALUSrc),
     .jump(jump),
@@ -89,7 +90,8 @@ control_unit control_0(
     .regwrite(regwrite),
     .inwrite(inwrite),
     .pctoadd(pctoadd),
-    .pcwrite(pcwrite)
+    .pcwrite(pcwrite),
+    .regtojump(regtojump)
 );
 
 // instr register
@@ -164,7 +166,9 @@ logic and_result;
 assign and_result = branch && zero;
 
 //MUX4 location
-assign pc_in = jump ? (instr[25:0] << 2) : (and_result ? add_out : (pc_out + 4));
+assign pc_in = jump ?
+    (regtojump ? read_data1 : (instr[25:0] << 2)) :
+    (and_result ? add_out : (pc_out + 4));
 
 //logic[31:0] readdata
 //from data memory

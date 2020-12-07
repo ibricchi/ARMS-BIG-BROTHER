@@ -37,7 +37,7 @@ RESULT=$?
 set -e
 
 if [[ "${RESULT}" -ne 0 ]] ; then
-   echo "${TESTCASE} ${INSTRUCTION} Fail"
+   echo "${TESTCASE} ${INSTRUCTION} Fail  # Verilog testbench returned error code"
    exit
 fi
 
@@ -65,7 +65,7 @@ RESULT=$?
 set -e
 
 if [[ "${RESULT}" -ne 0 ]] ; then
-   echo "${TESTCASE} ${INSTRUCTION} Fail"
+   echo "${TESTCASE} ${INSTRUCTION} Fail  # Final register v0 value does not match"
 else
    echo "${TESTCASE} ${INSTRUCTION} Pass"
 fi

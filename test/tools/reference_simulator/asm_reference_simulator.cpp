@@ -130,12 +130,17 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             {
                 uint32_t dReg, sReg, tReg;
                 tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
-                regs[dReg] = (regs[sReg] < regs[tReg]) ? 1 : 0;
+                // Using signed values
+                regs[dReg] = (static_cast<int32_t>(regs[sReg]) < static_cast<int32_t>(regs[tReg])) ? 1 : 0;
                 pc += 4;
                 break;
             }
             case 0b101011: // SLTU
             {
+                uint32_t dReg, sReg, tReg;
+                tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                regs[dReg] = (regs[sReg] < regs[tReg]) ? 1 : 0;
+                pc += 4;
                 break;
             }
             case 0b100011: // SUBU

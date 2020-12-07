@@ -168,13 +168,16 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 // signed division
                 lo = static_cast<int32_t>(regs[sReg]) / static_cast<int32_t>(regs[tReg]); // quotient
                 hi = static_cast<int32_t>(regs[sReg]) % static_cast<int32_t>(regs[tReg]); // remainder
-                cerr << "lo: " << lo << endl;
-                cerr << "hi: " << hi << endl;
                 pc += 4;
                 break;
             }
             case 0b011011: // DIVU
             {
+                uint32_t sReg, tReg;
+                tie(ignore, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                lo = regs[sReg] / regs[tReg]; // quotient
+                hi = regs[sReg] % regs[tReg]; // remainder
+                pc += 4;
                 break;
             }
             case 0b011000: // MULT

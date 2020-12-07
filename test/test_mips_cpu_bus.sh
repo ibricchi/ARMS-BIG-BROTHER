@@ -23,7 +23,12 @@ for i in ${TESTCASES} ; do
     TEST_INSTRUCTION="$(grep -oE ^$INSTRUCTION <<< $TESTNAME || true)" # '|| true prevents grep from exiting on no match'
 
     if [[ "$INSTRUCTION" == "$TEST_INSTRUCTION" ]] || [[ "$INSTRUCTION" == "all" ]] ; then
-        ./test/run_one_testcase.sh ${SOURCE_DIRECTORY} ${CPU_VARIANT} ${TESTNAME} ${INSTRUCTION}
+        # Extract real instruction name for printing to cout
+        if [[ "$INSTRUCTION" == "all" ]] ; then
+            TEST_INSTRUCTION="$(grep -oE ^[a-z]+ <<< ${TESTNAME} || true)"
+        fi
+
+        ./test/run_one_testcase.sh ${SOURCE_DIRECTORY} ${CPU_VARIANT} ${TESTNAME} ${TEST_INSTRUCTION}
     fi
 done
 

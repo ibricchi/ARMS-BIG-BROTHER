@@ -182,6 +182,11 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             }
             case 0b011000: // MULT
             {
+                uint32_t sReg, tReg;
+                tie(ignore, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                // signed multiplication
+                lo = static_cast<int32_t>(regs[sReg]) * static_cast<int32_t>(regs[tReg]);
+                pc += 4;
                 break;
             }
             case 0b011001: // MULTU

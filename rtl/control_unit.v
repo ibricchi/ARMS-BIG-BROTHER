@@ -92,7 +92,8 @@ always_comb begin
                 I will break down the reason for every output value for the arithmetic instructions
                 the same logic was used to deduce the outpu for every other instruction
             */
-            6'b000000: begin /* arithmetic */
+            6'b000000: begin /* REGISTER INSTR WITH FN AS DIFFERENCE */
+                            // THIS INCLUDES ARITHLOG DIVMULT SHIFT SHIFTV JUMPMOVETO
                 ALUOp[1:0] = 2'b10; // this is the alu control that tells the alu to process based on function field of instr
                 ALUSrc     = 0; // the alu must read form register
                 jump       = regjump; // the pc must recieve data from normal +4 increment of pc unless we have a reg jump instr
@@ -106,7 +107,9 @@ always_comb begin
                 pctoadd    = 0; // we don't actually care what happens here
                 regtojump  = regjump; // we want high on a register jump instr
             end
-            6'b001001: begin /* addiu */
+            
+            // ARITHLOGI
+            6'b001001: begin // ADDIU
                 ALUOp[1:0] = 2'b00; 
                 ALUSrc     = 1;
                 jump       = 0;
@@ -120,35 +123,29 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
             end
-            6'b100011: begin /* lw */
-                ALUOp[1:0] = 2'b00; 
-                ALUSrc     = 1;
-                jump       = 0;
-                branch     = 0;
-                memread    = 1 & (exec1);
-                memwrite   = 0;
-                regdst     = 0;
-                memtoreg   = 1;
-                regwrite   = 1 & exec2;
-                inwrite    = 0;
-                pctoadd    = 0;
-                regtojump  = 0;
+            6'b001100: begin // ANDI !TODO
+                
             end
-            6'b101011: begin /* sw */
-                ALUOp[1:0] = 2'b00;
-                ALUSrc     = 1;
-                jump       = 0;
-                branch     = 0;
-                memread    = 0;
-                memwrite   = 1 & exec2;
-                regdst     = 1; 
-                memtoreg   = 0;
-                regwrite   = 0;
-                inwrite    = 0;
-                pctoadd    = 0;
-                regtojump  = 0;
+            6'b001101: begin // ORI !TODO
+                
             end
-            6'b000100: begin /* beq */ // !TODO test
+            6'b001101: begin // SLTI !TODO
+                
+            end
+            6'b001010: begin // SLTIU !TODO
+                
+            end
+            6'b001110: begin // XORI !TODO
+                
+            end
+
+            //LOADI
+            6'b011111: begin // LUI
+                
+            end
+
+            // BRANCH
+            6'b000100: begin // BEQ !TODO "THE CURRENT VALUES ARE NOT NECESSARILY CORRECT"
                 ALUOp[1:0] = 2'b01;
                 ALUSrc     = 0;
                 jump       = 0;
@@ -162,7 +159,78 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
             end
-            6'b000010: begin /* j */
+            6'b000101: begin // BNE !TODO
+                
+            end
+
+            // BRANCHZ + OTHER BRANCHZ
+            6'b000111: begin // BGTZ !TODO
+                
+            end
+            6'b000110: begin // BLEZ !TODO
+            
+            end
+            6'b000001: begin // BLTZ and OTHER_BRANCHZ !TODO
+                // BLTZ has function code of 00000
+                // you'll have to differentiate the different function codes
+            end
+
+            // LOADSTORE
+            6'b100000: begin // LB !TODO
+            
+            end
+            6'b100100: begin // LBU !TODO
+
+            end
+            6'b100001: begin // LH !TODO
+                
+            end
+            6'b100101: begin // LHU !TODO
+            
+            end
+            6'b100011: begin // LW
+                ALUOp[1:0] = 2'b00; 
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 1 & (exec1);
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 1;
+                regwrite   = 1 & exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+            end
+            6'b100010: begin // LWL !TODO
+                
+            end
+            6'b100110: begin // LWR !TODO
+
+            end
+            6'b101000: begin // SB !TODO
+
+            end
+            6'b101001: begin // SH !TODO
+
+            end
+            6'b101011: begin // SW
+                ALUOp[1:0] = 2'b00;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 0;
+                memwrite   = 1 & exec2;
+                regdst     = 1; 
+                memtoreg   = 0;
+                regwrite   = 0;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+            end
+
+            // JUMP
+            6'b000010: begin // J
                 ALUOp[1:0] = 2'b00;
                 ALUSrc     = 0;
                 jump       = 1;
@@ -176,7 +244,7 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
             end
-            6'b000011: begin /* jal */ // !TODO test
+            6'b000011: begin // JAL !TODO "THESE VALUES ARE MOST LIKELY NOT CORRECT"
                 ALUOp[1:0] = 2'b00;
                 ALUSrc     = 0;
                 jump       = 1;

@@ -36,7 +36,7 @@ module mips_cpu_bus_tb;
     end
 
     initial begin
-        reset <= 0;
+        reset <= 1;
         
         @(posedge clk);
         reset <= 0;

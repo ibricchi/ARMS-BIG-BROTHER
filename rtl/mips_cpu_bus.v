@@ -15,34 +15,93 @@ module mips_cpu_bus(
     input logic[31:0] readdata
 );
 
+// setup state machine
+logic[3:0] state;
+initial begin
+    state = 0;
+    active = 0;
+end
+
+always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
+    // debug code
+    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " Readdata: ", readdata, " read: ", read, " address", address);
+    if(!waitrequest) case(state)
+        0: begin // HALT
+            state <= 1;
+            active <= 1;
+            // $display("Entering FETCH STATE: ");
+        end
+        1: begin // FETCH
+            state <= 2;
+            // $display("Entering DECO STATE: ");
+        end
+        2: begin // DECODE
+            state <= 3;
+            // $display("Entering EXEC1 STATE: ");
+        end
+        3: begin // EXEC1
+            state <= 4;
+            // $display("Entering EXEC2 STATE: ");
+        end
+        4: begin // EXEC2
+            state <= 1;
+            // $display("Entering FETCH STATE: ");
+        end
+    endcase
+end
+
+always_ff @(posedge clk) begin // check if pc is at 0 and terminate
+    if(state!=0 & pc_out == 0) begin
+        active <= 0;
+        state <= 0; // halt
+    end
+end
+
 //instruction register not yet implemented
 //here I just created a logic 32-bit component as instruction
-logic[31:0] instr;
+logic[31:0] instr, instr_reg;
 logic[31:0] pc_in, pc_out;
+logic pcwrite;
 
 pc pc_0(
     .clk(clk),
     .reset(reset),
     .pc_in(pc_in),
+    .pcwrite(pcwrite),
     .pc_out(pc_out)
 );
 
 //control unit (not updated yet)
 logic[1:0] ALUOp;
-logic ALUSrc, jump, branch, memread, memwrite, regdst, memtoreg, regwrite;
+logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump;
 
 control_unit control_0(
     .opcode(instr[31:26]),
+    .state(state),
+    .fun(instr[5:0]),
+    .waitrequest(waitrequest),
     .ALUOp(ALUOp),
     .ALUSrc(ALUSrc),
     .jump(jump),
     .branch(branch),
-    .memread(memread),
-    .memwrite(memwrite),
+    .memread(read),
+    .memwrite(write),
     .regdst(regdst),
     .memtoreg(memtoreg),
-    .regwrite(regwrite)
+    .regwrite(regwrite),
+    .inwrite(inwrite),
+    .pctoadd(pctoadd),
+    .pcwrite(pcwrite),
+    .regtojump(regtojump)
 );
+
+// instr register
+always_ff @(posedge clk) begin
+    if(inwrite) begin
+        instr_reg <= readdata;
+    end
+end
+assign instr = (state==2)?readdata:instr_reg;
 
 //register file
 logic[31:0] read_data1, read_data2;
@@ -61,7 +120,8 @@ register_file reg_file_0(
     .write_data(write_data),
 
     .read_data1(read_data1),
-    .read_data2(read_data2)
+    .read_data2(read_data2),
+    .register_v0(register_v0)
 );
 
 logic[31:0] extend_out;
@@ -107,19 +167,15 @@ logic and_result;
 assign and_result = branch && zero;
 
 //MUX4 location
-assign pc_in = (and_result == 0) ? pc_out : add_out;
+assign pc_in = jump ?
+    (regtojump ? read_data1 : (instr[25:0] << 2)) :
+    (and_result ? add_out : (pc_out + 4));
 
-//logic[31:0] readdata
 //from data memory
-data_mem data_0(
-    .clk(clk),
-    .address(ALU_out),
-    .writedata(read_data2),
-    .memwrite(memwrite),
-    .memread(memread),
-    //output is readdata
-    .readdata(readdata)
-);
+assign address = pctoadd?pc_out:ALU_out;
+
+//writedata always second output of register
+assign writedata = read_data2;
 
 //MUX3
 assign write_data = (memtoreg == 0) ? ALU_out : readdata;

@@ -3,6 +3,9 @@ might produce an invalid reference output for them.
 
 Format requirements:
 
+- File name: {lowercase instruction name}_{unique extension}.asm
+    Example: 'addu_1+1.asm'
+    The unique extension can contain any of the following characters: a-z, A-Z, 0-9, _, or -
 - Must load the final value into register $v0
 - All instructions should contribute somehow to correct state of the final value that will be stored in $v0
 - A failing instruction should lead to an incorrect final value ($v0)

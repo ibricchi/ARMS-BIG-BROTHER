@@ -102,8 +102,12 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             assert(func <= 0b111111);
             switch (func)
             {
-            case 0b100001: // ADD
+            case 0b100001: // ADDU
             {
+                uint32_t dReg, sReg, tReg;
+                tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                regs[dReg] = regs[sReg] + regs[tReg];
+                pc += 4;
                 break;
             }
             case 0b100100: // AND

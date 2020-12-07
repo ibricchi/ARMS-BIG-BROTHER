@@ -32,10 +32,10 @@ for i in ${TESTCASES} ; do
     fi
 done
 
-for i in ${C_TEST_FILES} ; do
-    TESTNAME=$(basename ${i} .c)
-    
-    if [[ "$INSTRUCTION" == "all" ]] || [[ "$INSTRUCTION" == "c" ]] ; then
+# Only test c-programs if specified. Not tested when no instruction is specified.
+if [[ "$INSTRUCTION" == "c" ]] ; then
+    for i in ${C_TEST_FILES} ; do
+        TESTNAME=$(basename ${i} .c)
         ./test/run_one_testcase.sh ${SOURCE_DIRECTORY} ${CPU_VARIANT} ${TESTNAME} ${INSTRUCTION} "yes"
-    fi
-done
+    done
+fi

@@ -85,6 +85,8 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
 
     uint32_t pc = memInstructionStartIdx;
     array<uint32_t, 32> regs{};
+    uint32_t lo{};
+    uint32_t hi{};
 
     while (pc != 0) // attempting to execute address 0 causes the CPU to halt
     {
@@ -161,6 +163,14 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             }
             case 0b011010: // DIV
             {
+                uint32_t sReg, tReg;
+                tie(ignore, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                // signed division
+                lo = static_cast<int32_t>(regs[sReg]) / static_cast<int32_t>(regs[tReg]); // quotient
+                hi = static_cast<int32_t>(regs[sReg]) % static_cast<int32_t>(regs[tReg]); // remainder
+                cerr << "lo: " << lo << endl;
+                cerr << "hi: " << hi << endl;
+                pc += 4;
                 break;
             }
             case 0b011011: // DIVU

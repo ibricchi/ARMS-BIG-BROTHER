@@ -85,6 +85,8 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
 
     uint32_t pc = memInstructionStartIdx;
     array<uint32_t, 32> regs{};
+    uint32_t lo{};
+    uint32_t hi{};
 
     while (pc != 0) // attempting to execute address 0 causes the CPU to halt
     {
@@ -112,42 +114,87 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             }
             case 0b100100: // AND
             {
+                uint32_t dReg, sReg, tReg;
+                tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                regs[dReg] = regs[sReg] & regs[tReg];
+                pc += 4;
                 break;
             }
             case 0b100101: // OR
             {
+                uint32_t dReg, sReg, tReg;
+                tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                regs[dReg] = regs[sReg] | regs[tReg];
+                pc += 4;
                 break;
             }
             case 0b101010: // SLT
             {
+                uint32_t dReg, sReg, tReg;
+                tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                // Using signed values
+                regs[dReg] = (static_cast<int32_t>(regs[sReg]) < static_cast<int32_t>(regs[tReg])) ? 1 : 0;
+                pc += 4;
                 break;
             }
             case 0b101011: // SLTU
             {
+                uint32_t dReg, sReg, tReg;
+                tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                regs[dReg] = (regs[sReg] < regs[tReg]) ? 1 : 0;
+                pc += 4;
                 break;
             }
             case 0b100011: // SUBU
             {
+                uint32_t dReg, sReg, tReg;
+                tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                regs[dReg] = regs[sReg] - regs[tReg];
+                pc += 4;
                 break;
             }
             case 0b100110: // XOR
             {
+                uint32_t dReg, sReg, tReg;
+                tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                regs[dReg] = regs[sReg] ^ regs[tReg];
+                pc += 4;
                 break;
             }
             case 0b011010: // DIV
             {
+                uint32_t sReg, tReg;
+                tie(ignore, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                // signed division
+                lo = static_cast<int32_t>(regs[sReg]) / static_cast<int32_t>(regs[tReg]); // quotient
+                hi = static_cast<int32_t>(regs[sReg]) % static_cast<int32_t>(regs[tReg]); // remainder
+                pc += 4;
                 break;
             }
             case 0b011011: // DIVU
             {
+                uint32_t sReg, tReg;
+                tie(ignore, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                lo = regs[sReg] / regs[tReg]; // quotient
+                hi = regs[sReg] % regs[tReg]; // remainder
+                pc += 4;
                 break;
             }
             case 0b011000: // MULT
             {
+                uint32_t sReg, tReg;
+                tie(ignore, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                // signed multiplication
+                lo = static_cast<int32_t>(regs[sReg]) * static_cast<int32_t>(regs[tReg]);
+                pc += 4;
                 break;
             }
             case 0b011001: // MULTU
             {
+                uint32_t sReg, tReg;
+                tie(ignore, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                lo = regs[sReg] * regs[tReg];
+                pc += 4;
                 break;
             }
             case 0b000000: // SLL

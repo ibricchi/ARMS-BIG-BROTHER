@@ -145,6 +145,10 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             }
             case 0b100011: // SUBU
             {
+                uint32_t dReg, sReg, tReg;
+                tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                regs[dReg] = regs[sReg] - regs[tReg];
+                pc += 4;
                 break;
             }
             case 0b100110: // XOR

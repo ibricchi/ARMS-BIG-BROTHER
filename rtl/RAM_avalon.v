@@ -27,63 +27,43 @@ initial begin
         $readmemh(RAM_INIT_FILE, memory);
     end
 end
-// used to determine whether or not the request is completed
-logic finished_request;
 
-// internal managing logic
-logic[31:0] data;
-
-// logic debug for wait cycles
-logic[5:0] cycleCount;
-logic[5:0] waitCount;
-
+integer waitcycle;
 // initialise registers
 initial begin
     waitrequest = 0;
     readdata = 0;
 
-    cycleCount = 0;
-    waitCount = 4;
+    waitcycle = $urandom_range(0,5);
 end
 
-always_ff @(posedge clk) begin
-    if(waitrequest) begin // if we're currently waiting for something
-        if(finished_request) begin // check if request is completed
-            // $display("finished request ", read, " ", write);
-            if(read) begin // if read then return requested data
-                // $display("setting readddata", data);
-                readdata <= data;
-            end
-            else begin // if write then change memory
-                memory[address] <= writedata;
-            end
-            cycleCount[5:0] <= 0;
-            waitrequest <= 0;
-        end
-        else begin // otherwise increase cycle count (this is to simulate waiting)
-            cycleCount <= cycleCount + 1;
-        end
-    end
-end
+// simulate location in memory (wrap around if no valid location)
+assign address = ((addressin - 3217031168)>>2)%4096;
 
 // start wait request if read or write is high and not already in wait request
 always_ff @(posedge read) begin
-    // $display("read based interrupt ", read);
     waitrequest <= 1;
 end
 always_ff @(posedge write) begin
     waitrequest <= 1;
 end
 
-// this will wait for cycleCount to be equal to or aboce waitcount and then set data to the correct value
-always_comb begin
-    address = ((addressin - 3217031168)>>2)%4096;
-    if(cycleCount >= waitCount) begin
-        finished_request = 1;
-        data[31:0] = memory[address];
-    end
-    else begin
-        finished_request = 0;
+// simulate a random wait time after request
+always_ff @(posedge clk) begin
+    if(waitrequest) begin // if in waitrequest
+        if(waitcycle != 0) begin // check if waitcycle has finihsed
+            waitcycle <= waitcycle - 1;
+        end
+        else if(waitcycle == 0) begin
+            if(read) begin // set readdata if requested
+                readdata <= memory[address];
+            end
+            else if(write) begin // set write data if requested
+                memory[address] <= writedata;
+            end
+            waitcycle <= $urandom_range(0,5); // reset reandom wait time (this can be set to a constant, random can be useful for testing)
+            waitrequest <= 0; // reset wait request
+        end
     end
 end
 

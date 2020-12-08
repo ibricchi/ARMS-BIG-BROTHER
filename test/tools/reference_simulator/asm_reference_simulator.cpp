@@ -232,6 +232,11 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             }
             case 0b000111: // SRAV
             {
+                uint32_t dReg, sReg, tReg;
+                tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                // >> always shifts in zero for unsigned types
+                regs[dReg] = static_cast<int32_t>(regs[tReg]) >> regs[sReg];
+                pc += 4;
                 break;
             }
             case 0b000110: // SRLV

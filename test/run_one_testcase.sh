@@ -60,7 +60,7 @@ set -e
 
 >&2 echo "  5 - Comparing output"
 set +e
-diff -w ./test/reference/${TESTCASE}.out-v0 ./test/output/mips_cpu_${CPU_VARIANT}_tb_${TESTCASE}.out-v0
+diff -w ./test/reference/${TESTCASE}.out-v0 ./test/output/mips_cpu_${CPU_VARIANT}_tb_${TESTCASE}.out-v0 >&2
 RESULT=$?
 set -e
 

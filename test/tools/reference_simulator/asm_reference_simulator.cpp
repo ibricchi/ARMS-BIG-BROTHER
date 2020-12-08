@@ -199,6 +199,10 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             }
             case 0b000000: // SLL
             {
+                uint32_t dReg, tReg, constant;
+                tie(dReg, ignore, tReg, constant) = decodeArithmeticType(instruction);
+                regs[dReg] = regs[tReg] << constant;
+                pc += 4;
                 break;
             }
             case 0b000011: // SRA

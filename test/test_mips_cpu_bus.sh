@@ -20,12 +20,14 @@ fi
 
 for i in ${TESTCASES} ; do
     TESTNAME=$(basename ${i} .asm)
-    TEST_INSTRUCTION="$(grep -oE ^$INSTRUCTION <<< $TESTNAME || true)" # '|| true prevents grep from exiting on no match'
+    TEST_INSTRUCTION="$(grep -oE ^$INSTRUCTION\_ <<< $TESTNAME || true)" # '|| true prevents grep from exiting on no match'
+    TEST_INSTRUCTION="$(sed -E s/_// <<< ${TEST_INSTRUCTION} || true)"
 
     if [[ "$INSTRUCTION" == "$TEST_INSTRUCTION" ]] || [[ "$INSTRUCTION" == "all" ]] ; then
         # Extract real instruction name for printing to cout
         if [[ "$INSTRUCTION" == "all" ]] ; then
-            TEST_INSTRUCTION="$(grep -oE ^[a-z]+ <<< ${TESTNAME} || true)"
+            TEST_INSTRUCTION="$(grep -oE ^[a-z]+_ <<< ${TESTNAME} || true)"
+            TEST_INSTRUCTION="$(sed -E s/_// <<< ${TEST_INSTRUCTION} || true)"
         fi
 
         ./test/run_one_testcase.sh ${SOURCE_DIRECTORY} ${CPU_VARIANT} ${TESTNAME} ${TEST_INSTRUCTION}

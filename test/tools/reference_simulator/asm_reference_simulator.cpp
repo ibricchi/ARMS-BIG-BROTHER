@@ -321,10 +321,19 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         }
         case 0b001010: // SLTI
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            // Using signed values
+            regs[tReg] = (static_cast<int32_t>(regs[sReg]) < static_cast<int32_t>(immediate)) ? 1 : 0;
+            pc += 4;
             break;
         }
         case 0b001011: // SLTIU
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            regs[tReg] = (regs[sReg] < immediate) ? 1 : 0;
+            pc += 4;
             break;
         }
         case 0b001110: // XORI

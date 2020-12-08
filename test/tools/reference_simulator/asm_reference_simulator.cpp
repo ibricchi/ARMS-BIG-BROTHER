@@ -272,10 +272,18 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             }
             case 0b010001: // MTHI
             {
+                uint32_t sReg;
+                tie(ignore, sReg, ignore, ignore) = decodeArithmeticType(instruction);
+                hi = regs[sReg];
+                pc += 4;
                 break;
             }
             case 0b010011: // MTLO
             {
+                uint32_t sReg;
+                tie(ignore, sReg, ignore, ignore) = decodeArithmeticType(instruction);
+                lo = regs[sReg];
+                pc += 4;
                 break;
             }
             default:

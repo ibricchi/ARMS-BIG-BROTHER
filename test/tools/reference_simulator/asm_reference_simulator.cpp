@@ -348,34 +348,108 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         {
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
-            // Use signed immediates as relative branches could be negative
-            pc += (regs[sReg] == regs[tReg]) ? static_cast<int32_t>(immediate) << 2 : 4;
+            pc += 4;
+            if (regs[sReg] == regs[tReg])
+            {
+                // Use signed immediates as relative branches could be negative
+                pc += static_cast<int32_t>(immediate) << 2;
+            }
             break;
         }
         case 0b000101: // BNE
         {
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
-            // Use signed immediates as relative branches could be negative
-            pc += (regs[sReg] != regs[tReg]) ? static_cast<int32_t>(immediate) << 2 : 4;
+            pc += 4;
+            if (regs[sReg] != regs[tReg])
+            {
+                // Use signed immediates as relative branches could be negative
+                pc += static_cast<int32_t>(immediate) << 2;
+            }
             break;
         }
         case 0b000111: // BGTZ
         {
+            uint32_t sReg, immediate;
+            tie(ignore, sReg, immediate) = decodeImmediateType(instruction);
+            pc += 4;
+            if (regs[sReg] > 0)
+            {
+                // Use signed immediates as relative branches could be negative
+                pc += static_cast<int32_t>(immediate) << 2;
+            }
             break;
         }
         case 0b000110: // BLEZ
         {
+            uint32_t sReg, immediate;
+            tie(ignore, sReg, immediate) = decodeImmediateType(instruction);
+            pc += 4;
+            if (regs[sReg] <= 0)
+            {
+                // Use signed immediates as relative branches could be negative
+                pc += static_cast<int32_t>(immediate) << 2;
+            }
             break;
         }
-        case 0b000001: // BLTZ
+        case 0b000001: // OTHER BRANCHZ
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+
+            switch (tReg)
+            {
+            case 0b00000: // BLTZ
+            {
+                pc += 4;
+                if (regs[sReg] < 0)
+                {
+                    // Use signed immediates as relative branches could be negative
+                    pc += static_cast<int32_t>(immediate) << 2;
+                }
+                break;
+            }
+            case 0b00001: // BGEZ
+            {
+                pc += 4;
+                if (regs[sReg] >= 0)
+                {
+                    // Use signed immediates as relative branches could be negative
+                    pc += static_cast<int32_t>(immediate) << 2;
+                }
+                break;
+            }
+            case 0b10001: // BGEZAL
+            {
+                pc += 4;
+                regs[31] = pc;
+                if (regs[sReg] >= 0)
+                {
+                    // Use signed immediates as relative branches could be negative
+                    pc += static_cast<int32_t>(immediate) << 2;
+                }
+                break;
+            }
+            case 0b10000: // BLTZAL
+            {
+                pc += 4;
+                regs[31] = pc;
+                if (regs[sReg] < 0)
+                {
+                    // Use signed immediates as relative branches could be negative
+                    pc += static_cast<int32_t>(immediate) << 2;
+                }
+                break;
+            }
+            default:
+            {
+                cerr << "Invalid tReg for OTHER BRANCHZ instruction: " << tReg << endl;
+                assert(true);
+                break;
+            }
+            }
             break;
         }
-        // case 0b000001: // OTHER BRANCHZ
-        // {
-        //     break;
-        // }
         case 0b100000: // LB
         {
             break;

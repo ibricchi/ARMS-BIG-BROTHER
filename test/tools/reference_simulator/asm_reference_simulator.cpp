@@ -346,10 +346,16 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         }
         case 0b000100: // BEQ
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            pc += (regs[sReg] == regs[tReg]) ? immediate << 2 : 4;
             break;
         }
         case 0b000101: // BNE
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            pc += (regs[sReg] != regs[tReg]) ? immediate << 2 : 4;
             break;
         }
         case 0b000111: // BGTZ

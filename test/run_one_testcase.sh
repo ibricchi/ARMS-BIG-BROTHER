@@ -56,7 +56,13 @@ if [[ "$IS_C_PROGRAM" == "yes" ]] ; then
 else
    ./test/tools/bin/asm_reference_simulator < ./test/binary/${TESTCASE}.hex > ./test/reference/${TESTCASE}.out-v0
 fi
+RESULT=$?
 set -e
+
+if [[ "${RESULT}" -ne 0 ]] ; then
+   echo "${TESTCASE} ${INSTRUCTION} Fail  # Reference simulator returned error code"
+   exit
+fi
 
 >&2 echo "  5 - Comparing output"
 set +e

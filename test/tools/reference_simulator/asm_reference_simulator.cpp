@@ -338,6 +338,10 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         }
         case 0b001110: // XORI
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            regs[tReg] = regs[sReg] ^ immediate;
+            pc += 4;
             break;
         }
         case 0b000100: // BEQ

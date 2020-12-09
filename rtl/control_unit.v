@@ -30,7 +30,10 @@ module control_unit(
     output logic      pctoadd,   // constant     // if high pass PC to memory address otehrwise pass alu output
 
     output logic      pcwrite,
-    output logic      regtojump
+    output logic      regtojump,
+
+    output logic      div_mult_en,
+    output logic[1:0] div_mult_op
 );
 
 // states

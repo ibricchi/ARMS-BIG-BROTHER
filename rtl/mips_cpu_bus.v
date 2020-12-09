@@ -72,14 +72,15 @@ pc pc_0(
 );
 
 //control unit (not updated yet)
-logic[1:0] ALUOp;
-logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump;
+logic[1:0] ALUOp, div_mult_op;
+logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en;
 
 control_unit control_0(
     .opcode(instr[31:26]),
     .state(state),
     .fun(instr[5:0]),
     .waitrequest(waitrequest),
+
     .ALUOp(ALUOp),
     .ALUSrc(ALUSrc),
     .jump(jump),
@@ -92,7 +93,9 @@ control_unit control_0(
     .inwrite(inwrite),
     .pctoadd(pctoadd),
     .pcwrite(pcwrite),
-    .regtojump(regtojump)
+    .regtojump(regtojump),
+    .div_mult_en(div_mult_en),
+    .div_mult_op(div_mult_op)
 );
 
 // instr register
@@ -123,6 +126,21 @@ register_file reg_file_0(
     .read_data2(read_data2),
     .register_v0(register_v0)
 );
+
+// multiply and divide alu and register
+logic[31:0] hi, lo;
+div_mult_reg div_mult_reg_0(
+    .clk(clk),
+    .reset(reset),
+
+    .write_en(div_mult_en),
+    .op(div_mult_op),
+    .in_1(read_data1),
+    .in_2(read_data2),
+
+    .hi(hi),
+    .lo(lo),
+)
 
 logic[31:0] extend_out;
 assign extend_out = {16'h0000, instr[15:0]};

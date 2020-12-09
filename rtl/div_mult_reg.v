@@ -1,21 +1,26 @@
 //An ADD ALU situated at the top of the diagram
 module div_mult_reg(
-    input logic clk;
-    input logic write_en;
-    input logic[1:0] op;
-    input logic[31:0] in_1;
-    input logic[31:0] in_2;
-    input logic reg_to_reg;
+    input logic clk,
+    input logic reset,
 
-    output logic[31:0] lo;
-    output logic[31:0] hi;
+    input logic write_en,
+    input logic[1:0] op,
+    input logic[31:0] in_1,
+    input logic[31:0] in_2,
+
+    output logic[31:0] lo,
+    output logic[31:0] hi
 );
 
 logic[63:0] prod;
 assign prod = in_1 * in_2;
 
 always_ff @(posedge clk) begin
-    case (op)
+    if(reset) begin
+        hi <= 0;
+        lo <= 0;
+    end
+    else case (op)
         2'b00: // MTHI
             lo <= in_1;
         2'b01: // MTLO

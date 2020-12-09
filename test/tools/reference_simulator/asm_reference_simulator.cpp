@@ -90,7 +90,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
 
     while (pc != 0) // attempting to execute address 0 causes the CPU to halt
     {
-        assert(pc <= maxUint32t);
+        assert(pc <= maxUint32t && pc > 0);
 
         uint32_t instruction = memory[pc];
         uint32_t opcode = instruction >> 26; // opcode is 6 bits
@@ -500,10 +500,17 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         }
         case 0b000010: // J
         {
+            uint32_t immediate;
+            tie(ignore, ignore, immediate) = decodeImmediateType(instruction);
+            pc = immediate << 2;
             break;
         }
         case 0b000011: // JAR
         {
+            regs[31] = pc + 4;
+            uint32_t immediate;
+            tie(ignore, ignore, immediate) = decodeImmediateType(instruction);
+            pc = immediate << 2;
             break;
         }
         default:

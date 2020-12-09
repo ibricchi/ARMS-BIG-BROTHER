@@ -52,6 +52,7 @@ end
 
 always_ff @(posedge clk) begin // check if pc is at 0 and terminate
     if(state!=0 & pc_out == 0) begin
+        $display(hi, " : ", lo);
         active <= 0;
         state <= 0; // halt
     end
@@ -73,7 +74,7 @@ pc pc_0(
 
 //control unit (not updated yet)
 logic[1:0] ALUOp, div_mult_op;
-logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en;
+logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed;
 
 control_unit control_0(
     .opcode(instr[31:26]),
@@ -95,6 +96,7 @@ control_unit control_0(
     .pcwrite(pcwrite),
     .regtojump(regtojump),
     .div_mult_en(div_mult_en),
+    .div_mult_signed(div_mult_signed),
     .div_mult_op(div_mult_op)
 );
 
@@ -134,6 +136,7 @@ div_mult_reg div_mult_reg_0(
     .reset(reset),
 
     .write_en(div_mult_en),
+    .sin(div_mult_signed),
     .op(div_mult_op),
     .in_1(read_data1),
     .in_2(read_data2),

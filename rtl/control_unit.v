@@ -33,6 +33,7 @@ module control_unit(
     output logic      regtojump,
 
     output logic      div_mult_en,
+    output logic      div_mult_signed,
     output logic[1:0] div_mult_op
 );
 
@@ -78,6 +79,7 @@ always_comb begin
         pctoadd    = 1;
         regtojump  = 0;
         div_mult_en= 0; 
+        div_mult_signed = 0;
         div_mult_op= 2'b00;
     end
     else if(decode) begin // in decode store instruction
@@ -93,7 +95,8 @@ always_comb begin
         inwrite    = 1;
         pctoadd    = 1;
         regtojump  = 0;
-        div_mult_en= 0; 
+        div_mult_en= 0;
+        div_mult_signed = 0;
         div_mult_op= 2'b00;
     end
     else begin
@@ -116,16 +119,11 @@ always_comb begin
                 inwrite    = 0; // we don't want instr register to be overwritten
                 pctoadd    = 0; // we don't actually care what happens here
                 regtojump  = regjump; // we want high on a register jump instr
-                div_mult_en= mult_div;
-                if(fun == 6'b011001) begin
-                    div_mult_op = 2'b10;
-                end
-                else if(fun == 6'b011011) begin
-                    div_mult_op = 2'b11;
-                end
-                else begin
-                    div_mult_op = 2'b00;
-                end
+                div_mult_en= mult_div & exec1;
+                div_mult_signed = fun==6'b011010|6'b011000;
+                div_mult_op =   (fun == 6'b011000 | fun == 6'b011001) ? 2'b10:
+                                ((fun == 6'b011010| fun == 6'b011011) ? 2'b11:
+                                2'b00);
             end
             
             // ARITHLOGI
@@ -143,6 +141,7 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
                 div_mult_en= 0; 
+                div_mult_signed = 0;
                 div_mult_op= 2'b00;
             end
             6'b001100: begin // ANDI !TODO
@@ -181,6 +180,7 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
                 div_mult_en= 0; 
+                div_mult_signed = 0;
                 div_mult_op= 2'b00;
             end
             6'b000101: begin // BNE !TODO
@@ -226,6 +226,7 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
                 div_mult_en= 0; 
+                div_mult_signed = 0;
                 div_mult_op= 2'b00;
             end
             6'b100010: begin // LWL !TODO
@@ -254,6 +255,7 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
                 div_mult_en= 0; 
+                div_mult_signed = 0;
                 div_mult_op= 2'b00;
             end
 
@@ -272,6 +274,7 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
                 div_mult_en= 0; 
+                div_mult_signed = 0;
                 div_mult_op= 2'b00;
             end
             6'b000011: begin // JAL !TODO "THESE VALUES ARE MOST LIKELY NOT CORRECT"
@@ -288,6 +291,7 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
                 div_mult_en= 0; 
+                div_mult_signed = 0;
                 div_mult_op= 2'b00;
             end
         endcase

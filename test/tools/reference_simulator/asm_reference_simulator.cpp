@@ -199,26 +199,52 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             }
             case 0b000000: // SLL
             {
+                uint32_t dReg, tReg, constant;
+                tie(dReg, ignore, tReg, constant) = decodeArithmeticType(instruction);
+                regs[dReg] = regs[tReg] << constant;
+                pc += 4;
                 break;
             }
             case 0b000011: // SRA
             {
+                uint32_t dReg, tReg, constant;
+                tie(dReg, ignore, tReg, constant) = decodeArithmeticType(instruction);
+                // >> always shifts in zero for unsigned types
+                regs[dReg] = static_cast<int32_t>(regs[tReg]) >> constant;
+                pc += 4;
                 break;
             }
-            case 0b000010: // SWL
+            case 0b000010: // SRL
             {
+                uint32_t dReg, tReg, constant;
+                tie(dReg, ignore, tReg, constant) = decodeArithmeticType(instruction);
+                regs[dReg] = regs[tReg] >> constant;
+                pc += 4;
                 break;
             }
             case 0b000100: // SLLV
             {
+                uint32_t dReg, sReg, tReg;
+                tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                regs[dReg] = regs[tReg] << regs[sReg];
+                pc += 4;
                 break;
             }
             case 0b000111: // SRAV
             {
+                uint32_t dReg, sReg, tReg;
+                tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                // >> always shifts in zero for unsigned types
+                regs[dReg] = static_cast<int32_t>(regs[tReg]) >> regs[sReg];
+                pc += 4;
                 break;
             }
             case 0b000110: // SRLV
             {
+                uint32_t dReg, sReg, tReg;
+                tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
+                regs[dReg] = regs[tReg] >> regs[sReg];
+                pc += 4;
                 break;
             }
             case 0b001000: // JR
@@ -228,12 +254,36 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 pc = regs[sReg];
                 break;
             }
+            case 0b010000: // MFHI
+            {
+                uint32_t dReg;
+                tie(dReg, ignore, ignore, ignore) = decodeArithmeticType(instruction);
+                regs[dReg] = hi;
+                pc += 4;
+                break;
+            }
+            case 0b010010: // MFLO
+            {
+                uint32_t dReg;
+                tie(dReg, ignore, ignore, ignore) = decodeArithmeticType(instruction);
+                regs[dReg] = lo;
+                pc += 4;
+                break;
+            }
             case 0b010001: // MTHI
             {
+                uint32_t sReg;
+                tie(ignore, sReg, ignore, ignore) = decodeArithmeticType(instruction);
+                hi = regs[sReg];
+                pc += 4;
                 break;
             }
             case 0b010011: // MTLO
             {
+                uint32_t sReg;
+                tie(ignore, sReg, ignore, ignore) = decodeArithmeticType(instruction);
+                lo = regs[sReg];
+                pc += 4;
                 break;
             }
             default:
@@ -255,48 +305,151 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         }
         case 0b001100: // ANDI
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            regs[tReg] = regs[sReg] & immediate;
+            pc += 4;
             break;
         }
         case 0b001101: // ORI
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            regs[tReg] = regs[sReg] | immediate;
+            pc += 4;
             break;
         }
         case 0b001010: // SLTI
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            // Using signed values
+            regs[tReg] = (static_cast<int32_t>(regs[sReg]) < static_cast<int32_t>(immediate)) ? 1 : 0;
+            pc += 4;
             break;
         }
         case 0b001011: // SLTIU
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            regs[tReg] = (regs[sReg] < immediate) ? 1 : 0;
+            pc += 4;
             break;
         }
         case 0b001110: // XORI
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            regs[tReg] = regs[sReg] ^ immediate;
+            pc += 4;
             break;
         }
         case 0b000100: // BEQ
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            pc += 4;
+            if (regs[sReg] == regs[tReg])
+            {
+                // Use signed immediates as relative branches could be negative
+                pc += static_cast<int32_t>(immediate) << 2;
+            }
             break;
         }
         case 0b000101: // BNE
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            pc += 4;
+            if (regs[sReg] != regs[tReg])
+            {
+                // Use signed immediates as relative branches could be negative
+                pc += static_cast<int32_t>(immediate) << 2;
+            }
             break;
         }
         case 0b000111: // BGTZ
         {
+            uint32_t sReg, immediate;
+            tie(ignore, sReg, immediate) = decodeImmediateType(instruction);
+            pc += 4;
+            if (regs[sReg] > 0)
+            {
+                // Use signed immediates as relative branches could be negative
+                pc += static_cast<int32_t>(immediate) << 2;
+            }
             break;
         }
         case 0b000110: // BLEZ
         {
+            uint32_t sReg, immediate;
+            tie(ignore, sReg, immediate) = decodeImmediateType(instruction);
+            pc += 4;
+            if (regs[sReg] <= 0)
+            {
+                // Use signed immediates as relative branches could be negative
+                pc += static_cast<int32_t>(immediate) << 2;
+            }
             break;
         }
-        case 0b000001: // BLTZ
+        case 0b000001: // OTHER BRANCHZ
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+
+            switch (tReg)
+            {
+            case 0b00000: // BLTZ
+            {
+                pc += 4;
+                if (regs[sReg] < 0)
+                {
+                    // Use signed immediates as relative branches could be negative
+                    pc += static_cast<int32_t>(immediate) << 2;
+                }
+                break;
+            }
+            case 0b00001: // BGEZ
+            {
+                pc += 4;
+                if (regs[sReg] >= 0)
+                {
+                    // Use signed immediates as relative branches could be negative
+                    pc += static_cast<int32_t>(immediate) << 2;
+                }
+                break;
+            }
+            case 0b10001: // BGEZAL
+            {
+                pc += 4;
+                regs[31] = pc;
+                if (regs[sReg] >= 0)
+                {
+                    // Use signed immediates as relative branches could be negative
+                    pc += static_cast<int32_t>(immediate) << 2;
+                }
+                break;
+            }
+            case 0b10000: // BLTZAL
+            {
+                pc += 4;
+                regs[31] = pc;
+                if (regs[sReg] < 0)
+                {
+                    // Use signed immediates as relative branches could be negative
+                    pc += static_cast<int32_t>(immediate) << 2;
+                }
+                break;
+            }
+            default:
+            {
+                cerr << "Invalid tReg for OTHER BRANCHZ instruction: " << tReg << endl;
+                assert(true);
+                break;
+            }
+            }
             break;
         }
-        // case 0b000001: // OTHER BRANCHZ
-        // {
-        //     break;
-        // }
         case 0b100000: // LB
         {
             break;

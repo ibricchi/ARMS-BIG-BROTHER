@@ -139,8 +139,8 @@ div_mult_reg div_mult_reg_0(
     .in_2(read_data2),
 
     .hi(hi),
-    .lo(lo),
-)
+    .lo(lo)
+);
 
 logic[31:0] extend_out;
 assign extend_out = {16'h0000, instr[15:0]};

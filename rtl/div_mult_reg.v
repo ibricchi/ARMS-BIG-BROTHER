@@ -8,8 +8,8 @@ module div_mult_reg(
     input logic[31:0] in_1,
     input logic[31:0] in_2,
 
-    output logic[31:0] lo,
-    output logic[31:0] hi
+    output logic[31:0] hi,
+    output logic[31:0] lo
 );
 
 logic[63:0] prod;
@@ -20,19 +20,24 @@ always_ff @(posedge clk) begin
         hi <= 0;
         lo <= 0;
     end
-    else case (op)
-        2'b00: // MTHI
-            lo <= in_1;
-        2'b01: // MTLO
-            hi <= in_2;
-        2'b10: // MULTU
-            hi <= prod[63:32];
-            lo <= prod[31:0];
-        2'b11: // DIVU
-            lo <= in_1/in_2;
-            hi <= in_1%in_2;
-
-    endcase
+    else begin 
+        case (op)
+            2'b00: begin // MTHI
+                hi <= in_1;
+            end
+            2'b01: begin // MTLO
+                lo <= in_2;
+            end
+            2'b10: begin // MULTU
+                hi <= prod[63:32];
+                lo <= prod[31:0];
+            end
+            2'b11: begin // DIVU
+                lo <= in_1/in_2;
+                hi <= in_1%in_2;
+            end
+        endcase
+    end
 end
 
 endmodule

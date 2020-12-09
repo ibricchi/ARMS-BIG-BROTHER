@@ -46,6 +46,7 @@ logic exec2;
 // functions
 logic arith;
 logic regjump;
+logic mult_div;
 
 always_comb begin
     //default settings for R-format instructions
@@ -58,6 +59,8 @@ always_comb begin
 
     arith = fun == 6'b100001 | fun == 6'b100100 | fun == 6'b100101 | fun == 6'b101010 | fun == 6'b101011 | fun == 6'b100011 | fun == 6'b100110;
     regjump = fun == 6'b001001 | fun == 6'b001000;
+    mult_div = fun == 6'b011010 | fun == 6'b011011 | fun == 6'b011000 | fun == 6'b011001;
+
     
     pcwrite = exec2 & !waitrequest;
 
@@ -74,6 +77,8 @@ always_comb begin
         inwrite    = 0;
         pctoadd    = 1;
         regtojump  = 0;
+        div_mult_en= 0; 
+        div_mult_op= 2'b00;
     end
     else if(decode) begin // in decode store instruction
         ALUOp[1:0] = 2'b00;
@@ -88,6 +93,8 @@ always_comb begin
         inwrite    = 1;
         pctoadd    = 1;
         regtojump  = 0;
+        div_mult_en= 0; 
+        div_mult_op= 2'b00;
     end
     else begin
         case(opcode)
@@ -109,6 +116,16 @@ always_comb begin
                 inwrite    = 0; // we don't want instr register to be overwritten
                 pctoadd    = 0; // we don't actually care what happens here
                 regtojump  = regjump; // we want high on a register jump instr
+                div_mult_en= mult_div;
+                if(fun == 6'b011001) begin
+                    div_mult_op = 2'b10;
+                end
+                else if(fun == 6'b011011) begin
+                    div_mult_op = 2'b11;
+                end
+                else begin
+                    div_mult_op = 2'b00;
+                end
             end
             
             // ARITHLOGI
@@ -125,6 +142,8 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_op= 2'b00;
             end
             6'b001100: begin // ANDI !TODO
                 
@@ -161,6 +180,8 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_op= 2'b00;
             end
             6'b000101: begin // BNE !TODO
                 
@@ -204,6 +225,8 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_op= 2'b00;
             end
             6'b100010: begin // LWL !TODO
                 
@@ -230,6 +253,8 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_op= 2'b00;
             end
 
             // JUMP
@@ -246,6 +271,8 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_op= 2'b00;
             end
             6'b000011: begin // JAL !TODO "THESE VALUES ARE MOST LIKELY NOT CORRECT"
                 ALUOp[1:0] = 2'b00;
@@ -260,6 +287,8 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_op= 2'b00;
             end
         endcase
     end

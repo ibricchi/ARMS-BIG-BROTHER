@@ -18,6 +18,7 @@ reg [31:0] memory [4095:0];
 initial begin
     integer i;
     /* Initialise to zero by default */
+    //memory[0] = 32'h00211021;
     for (i=0; i<4096; i++) begin
         memory[i]=0;
     end
@@ -26,23 +27,6 @@ initial begin
         $display("RAM : INIT : Loading RAM contents from %s", RAM_INIT_FILE);
         $readmemh(RAM_INIT_FILE, memory);
     end
-    memory[0] = 32'h24210000;//BGEZAL TEST BENCH (initialize all reg to -111)
-    memory[1] = 32'h042B00FF;//shouldN'T jump here//BGEZAL R1
-    memory[2] = 32'h24210001;
-    memory[3] = 32'h24210001;
-    memory[4] = 32'h24210111;
-    memory[5] = 32'h042B0002; //should jump // BGEZAL R1 
-    memory[6] = 32'h242100FF; //should not add a big num
-    memory[7] = 32'h24210001; 
-    memory[8] = 32'h24210001;
-    memory[9] = 32'h24210001;
-    memory[10] = 32'h24210001;
-    memory[11] = 32'h24210001;
-    // memory[12] = 32'h0C000010;
-    //the sub program start 
-    // memory[64] = 32'h00000080;
-    // memory[128] = 32'h24210001;
-
 end
 
 integer waitcycle;
@@ -51,8 +35,7 @@ initial begin
     waitrequest = 0;
     readdata = 0;
 
-    // waitcycle = $urandom_range(0,5);
-    waitcycle = 0;
+    waitcycle = $urandom_range(0,5);
 end
 
 // simulate location in memory (wrap around if no valid location)
@@ -82,7 +65,7 @@ always_ff @(posedge clk) begin
             else if(write) begin // set write data if requested
                 memory[address] <= writedata;
             end
-            // waitcycle <= $urandom_range(0,5); // reset reandom wait time (this can be set to a constant, random can be useful for testing)
+            waitcycle <= $urandom_range(0,5); // reset reandom wait time (this can be set to a constant, random can be useful for testing)
             waitrequest <= 0; // reset wait request
         end
     end

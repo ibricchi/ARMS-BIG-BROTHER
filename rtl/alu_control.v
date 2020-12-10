@@ -7,6 +7,7 @@ module alu_control(
 );
 
 logic[3:0] func;
+logic[4:0] BranchCtrl;
 
 always_comb begin
     case(FuncCode)

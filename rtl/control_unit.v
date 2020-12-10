@@ -34,7 +34,7 @@ module control_unit(
 
     output logic      div_mult_en,
     output logic      div_mult_signed,
-    output logic[1:0] div_mult_op
+    output logic[1:0] div_mult_op,
 
     //for the Return Address Register (linking instruction)
     output logic      link,

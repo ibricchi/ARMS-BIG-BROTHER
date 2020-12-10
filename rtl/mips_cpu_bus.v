@@ -73,7 +73,8 @@ pc pc_0(
 );
 
 //control unit (not updated yet)
-logic[3:0] ALUOp, div_mult_op;
+logic[3:0] ALUOp;
+logic[1:0] div_mult_op;
 logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, link, loadimmed;
 
 control_unit control_0(
@@ -97,7 +98,7 @@ control_unit control_0(
     .regtojump(regtojump),
     .div_mult_en(div_mult_en),
     .div_mult_signed(div_mult_signed),
-    .div_mult_op(div_mult_op)
+    .div_mult_op(div_mult_op),
     .link(link),
     .loadimmed(loadimmed)
 );

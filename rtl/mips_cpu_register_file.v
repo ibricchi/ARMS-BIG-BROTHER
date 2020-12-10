@@ -19,19 +19,19 @@ module register_file(
     always_ff @(posedge clk) begin
         if(reset) begin
             for(int i = 0; i < 32; i = i + 1) begin
-                register[i] <= -111;
+                register[i] <= 0;
             end
         end
         else begin
             if(write_enable) begin
                 register[write_reg] <= write_data;
-                // $display("Setting reg ", write_reg, " to ", $signed(write_data));
+                $display("Setting reg ", write_reg, " to ", $signed(write_data));
             end
         end
     end
 
     assign read_data1 = (read_index1 == 0)? 32'b0 : register[read_index1];
     assign read_data2 = (read_index2 == 0)? 32'b0 : register[read_index2];
-    assign register_v0 = register[1];
+    assign register_v0 = register[2];
 
 endmodule

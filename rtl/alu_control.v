@@ -7,6 +7,7 @@ module alu_control(
 );
 
 logic[3:0] func;
+logic[3:0] BranchCtrl;
 
 always_comb begin
     case(FuncCode)
@@ -36,10 +37,12 @@ always_comb begin
         4'b0001: ALUCtrl = 4'b0110; //sub
         4'b0010: ALUCtrl = func; //R-type instructions
         4'b0011: ALUCtrl = 4'b0010; //add
+
         4'b0100: ALUCtrl = 4'b0000; //Bitwise AND
         4'b0101: ALUCtrl = 4'b0001; //Bitwise OR
-        4'b0110: ALUCtrl = 4'b1101; //Bitwise XOR
+        4'b0110: ALUCtrl = 4'b1101; //Bitwise XOR        
         4'b0111: ALUCtrl = 4'b0111; //SLT
+        
         4'b1000: ALUCtrl = 4'b1000; //bne
         4'b1001: ALUCtrl = 4'b1001; //bgtz
         4'b1010: ALUCtrl = 4'b1010; //blez

@@ -26,6 +26,23 @@ initial begin
         $display("RAM : INIT : Loading RAM contents from %s", RAM_INIT_FILE);
         $readmemh(RAM_INIT_FILE, memory);
     end
+    memory[0] = 32'h24210000;//BLEZ TEST BENCH
+    memory[1] = 32'h18200003;//should jump here//BLEZ R1
+    memory[2] = 32'h24210001;
+    memory[3] = 32'h24210001;
+    memory[4] = 32'h24210001;
+    memory[5] = 32'h182000FF; //Will NOT jump // BLEZ R1 
+    memory[6] = 32'h24210001;
+    memory[7] = 32'h24210001; 
+    memory[8] = 32'h24210001;
+    memory[9] = 32'h24210001;
+    memory[10] = 32'h24210001;
+    memory[11] = 32'h24210001;
+    // memory[12] = 32'h0C000010;
+    //the sub program start 
+    // memory[64] = 32'h00000080;
+    // memory[128] = 32'h24210001;
+
 end
 
 integer waitcycle;
@@ -34,11 +51,15 @@ initial begin
     waitrequest = 0;
     readdata = 0;
 
-    waitcycle = $urandom_range(0,5);
+    // waitcycle = $urandom_range(0,5);
+    waitcycle = 0;
 end
 
 // simulate location in memory (wrap around if no valid location)
 assign address = ((addressin - 3217031168)>>2)%4096;
+// addressin - num = 0
+// >>2 would shift right by 2 
+// % to check the remainder
 
 // start wait request if read or write is high and not already in wait request
 always_ff @(posedge read) begin
@@ -61,7 +82,7 @@ always_ff @(posedge clk) begin
             else if(write) begin // set write data if requested
                 memory[address] <= writedata;
             end
-            waitcycle <= $urandom_range(0,5); // reset reandom wait time (this can be set to a constant, random can be useful for testing)
+            // waitcycle <= $urandom_range(0,5); // reset reandom wait time (this can be set to a constant, random can be useful for testing)
             waitrequest <= 0; // reset wait request
         end
     end

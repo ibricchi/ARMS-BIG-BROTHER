@@ -33,8 +33,9 @@ module control_unit(
     output logic      regtojump,
 
     output logic      link      //for the Return Address Register //linking instruction 
+    //an extra signal for LUI
+    output logic      loadimmed
 );
-
 
 // states
 logic halt;
@@ -127,11 +128,35 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
             end
-            6'b001100: begin // ANDI !TODO
-                
+            6'b001100: begin // ANDI !TODO: not yet tested
+                ALUOp[3:0] = 4'b0100;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                loadimmed  = 0;
             end
-            6'b001101: begin // ORI !TODO
-                
+            6'b001101: begin // ORI !TODO: not yet tested
+                ALUOp[3:0] = 4'b0101;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                loadimmed  = 0;
             end
             6'b001101: begin // SLTI !TODO
                 
@@ -139,13 +164,39 @@ always_comb begin
             6'b001010: begin // SLTIU !TODO
                 
             end
-            6'b001110: begin // XORI !TODO
-                
+            6'b001110: begin // XORI !TODO: not yet tested
+                ALUOp[3:0] = 4'b0110;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                loadimmed  = 0;
             end
 
             //LOADI
             6'b011111: begin // LUI
-                
+            //similar to load, but require an extra signal to control the immed field
+                ALUOp[3:0] = 4'b0000; //Don't care
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 1 & (exec1);
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 1; //combine with extra signal
+                regwrite   = 1 & (exec2);
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                loadimmed  = 1; //extra signal
+
             end
 
             // BRANCH
@@ -179,7 +230,7 @@ always_comb begin
             end
 
             // BRANCHZ + OTHER BRANCHZ
-            6'b000111: begin // BGTZ 
+            6'b000111: begin // BGTZ !TODO
                 ALUOp[3:0] = 4'b1001;
                 ALUSrc     = 1;
                 jump       = 0;
@@ -193,7 +244,7 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
             end
-            6'b000110: begin // BLEZ 
+            6'b000110: begin // BLEZ !TODO
                 ALUOp[3:0] = 4'b1010;
                 ALUSrc     = 1;
                 jump       = 0;
@@ -207,7 +258,7 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;                
             end
-            6'b000001: begin // BLTZ and OTHER_BRANCHZ 
+            6'b000001: begin // BLTZ and OTHER_BRANCHZ !TODO
                 // BLTZ has function code of 00000
                 // you'll have to differentiate the different function codes
                 ALUOp[3:0] = 4'b1011;

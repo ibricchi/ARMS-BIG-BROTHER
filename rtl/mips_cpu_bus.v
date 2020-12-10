@@ -73,7 +73,7 @@ pc pc_0(
 
 //control unit (not updated yet)
 logic[3:0] ALUOp;
-logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, link;
+logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, link, loadimmed;
 
 control_unit control_0(
     .opcode(instr[31:26]),
@@ -93,7 +93,8 @@ control_unit control_0(
     .pctoadd(pctoadd),
     .pcwrite(pcwrite),
     .regtojump(regtojump),
-    .link(link)
+    .link(link),
+    .loadimmed(loadimmed)
 );
 
 // instr register
@@ -180,7 +181,7 @@ assign address = pctoadd?pc_out:ALU_out;
 assign writedata = read_data2;
 
 //MUX3
-assign write_data = (memtoreg == 0) ? ((link==0)?ALU_out:pc_out+4) : readdata;
+assign write_data = (memtoreg == 0) ? ( (link == 0) ? ALU_out : pc_out+4 ) : ( (loadimmed == 1) ? loadresult : readdata );
 
 
 endmodule

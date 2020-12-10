@@ -40,6 +40,9 @@ end
 
 // simulate location in memory (wrap around if no valid location)
 assign address = ((addressin - 3217031168)>>2)%4096;
+// addressin - num = 0
+// >>2 would shift right by 2 
+// % to check the remainder
 
 // start wait request if read or write is high and not already in wait request
 always_ff @(posedge read) begin

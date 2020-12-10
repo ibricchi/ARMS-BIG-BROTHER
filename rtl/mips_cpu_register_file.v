@@ -1,5 +1,6 @@
 module register_file(
     input logic clk,
+
     input logic reset,
 
     input logic[4:0]  read_index1,

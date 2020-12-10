@@ -80,6 +80,7 @@ control_unit control_0(
     .opcode(instr[31:26]),
     .state(state),
     .fun(instr[5:0]),
+    .branchFunc(instr[20:16]),
     .waitrequest(waitrequest),
 
     .ALUOp(ALUOp),
@@ -102,6 +103,7 @@ control_unit control_0(
     .lotoreg(lotoreg),
     .link(link),
     .loadimmed(loadimmed)
+
 );
 
 // instr register
@@ -164,8 +166,8 @@ logic[4:0] ALUCtrl;
 alu_control alu_ctrl_0(
     .ALUOp(ALUOp),
     .FuncCode(instr[5:0]),
-    .BranchzFunc(instr[20:16]),
-    .ALUCtrl(ALUCtrl)
+    .ALUCtrl(ALUCtrl),
+    .BranchzFunc(instr[20:16])
 );
 
 //ALU
@@ -205,13 +207,15 @@ assign address = pctoadd?pc_out:ALU_out;
 assign writedata = read_data2;
 
 //MUX3
-//an extra loadi instr to check
 logic[31:0] loadresult;
 assign loadresult = {instr[15:0],16'h0000};
 
 always_comb begin
     if(memtoreg) begin
         write_data = readdata;
+    end
+    else if(link) begin
+        write_data = pc_out+4;
     end
     else if(loadimmed) begin
         write_data = loadresult;

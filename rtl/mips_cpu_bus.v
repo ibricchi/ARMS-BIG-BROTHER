@@ -73,12 +73,13 @@ pc pc_0(
 
 //control unit (not updated yet)
 logic[3:0] ALUOp;
-logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, link, loadimmed;
+logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, link,loadimmed;
 
 control_unit control_0(
     .opcode(instr[31:26]),
     .state(state),
     .fun(instr[5:0]),
+    .branchFunc(instr[20:16]),
     .waitrequest(waitrequest),
     .ALUOp(ALUOp),
     .ALUSrc(ALUSrc),
@@ -95,6 +96,7 @@ control_unit control_0(
     .regtojump(regtojump),
     .link(link),
     .loadimmed(loadimmed)
+
 );
 
 // instr register
@@ -141,8 +143,8 @@ logic[3:0] ALUCtrl;
 alu_control alu_ctrl_0(
     .ALUOp(ALUOp),
     .FuncCode(instr[5:0]),
-    .BranchzFunc(instr[20:16]),
-    .ALUCtrl(ALUCtrl)
+    .ALUCtrl(ALUCtrl),
+    .BranchzFunc(instr[20:16])
 );
 
 //ALU
@@ -181,9 +183,9 @@ assign address = pctoadd?pc_out:ALU_out;
 assign writedata = read_data2;
 
 //MUX3
-//an extra loadi instr to check
 logic[31:0] loadresult;
 assign loadresult = {instr[15:0],16'h0000};
-assign write_data = (memtoreg == 0) ? ALU_out : (   (loadimmed == 1) ?  loadresult : readdata  );
+assign write_data = (memtoreg == 0) ? ( (link == 0) ? ALU_out : pc_out+4 ) : (   (loadimmed == 1) ?  loadresult : readdata  );
+
 
 endmodule

@@ -24,7 +24,7 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " Readdata: ", readdata, " read: ", read, " address", address);
+    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " ALU: ", ALU_out);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
@@ -52,7 +52,6 @@ end
 
 always_ff @(posedge clk) begin // check if pc is at 0 and terminate
     if(state!=0 & pc_out == 0) begin
-        $display(hi, " : ", lo);
         active <= 0;
         state <= 0; // halt
     end
@@ -75,7 +74,7 @@ pc pc_0(
 //control unit (not updated yet)
 logic[3:0] ALUOp;
 logic[1:0] div_mult_op;
-logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, link, loadimmed;
+logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, hitoreg, lotoreg, link, loadimmed;
 
 control_unit control_0(
     .opcode(instr[31:26]),
@@ -99,6 +98,8 @@ control_unit control_0(
     .div_mult_en(div_mult_en),
     .div_mult_signed(div_mult_signed),
     .div_mult_op(div_mult_op),
+    .hitoreg(hitoreg),
+    .lotoreg(lotoreg),
     .link(link),
     .loadimmed(loadimmed)
 );
@@ -159,7 +160,7 @@ logic[31:0] shift_out;
 assign shift_out = extend_out << 2;
 
 //ALU Control
-logic[3:0] ALUCtrl;
+logic[4:0] ALUCtrl;
 alu_control alu_ctrl_0(
     .ALUOp(ALUOp),
     .FuncCode(instr[5:0]),
@@ -174,6 +175,7 @@ logic[31:0] ALU_out;
 alu alu_0(
     .a(read_data1),
     .b(alu_b),
+    .as(instr[10:6]),
     .alu_control(ALUCtrl),
     .result(ALU_out),
     .zero(zero)
@@ -206,6 +208,23 @@ assign writedata = read_data2;
 //an extra loadi instr to check
 logic[31:0] loadresult;
 assign loadresult = {instr[15:0],16'h0000};
-assign write_data = (memtoreg == 0) ? ALU_out : (   (loadimmed == 1) ?  loadresult : readdata  );
+
+always_comb begin
+    if(memtoreg) begin
+        write_data = readdata;
+    end
+    else if(loadimmed) begin
+        write_data = loadresult;
+    end
+    else if(hitoreg) begin
+        write_data = hi;
+    end
+    else if(lotoreg) begin
+        write_data = lo;
+    end
+    else begin
+        write_data = ALU_out;
+    end
+end
 
 endmodule

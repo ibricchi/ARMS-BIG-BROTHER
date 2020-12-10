@@ -35,6 +35,8 @@ module control_unit(
     output logic      div_mult_en,
     output logic      div_mult_signed,
     output logic[1:0] div_mult_op,
+    output logic      hitoreg,
+    output logic      lotoreg,
 
     //for the Return Address Register (linking instruction)
     output logic      link,
@@ -64,9 +66,10 @@ always_comb begin
     exec1 = state==3;
     exec2 = state==4;
 
-    arith = fun == 6'b100001 | fun == 6'b100100 | fun == 6'b100101 | fun == 6'b101010 | fun == 6'b101011 | fun == 6'b100011 | fun == 6'b100110;
+    arith = fun == 6'b100001 | fun == 6'b100100 | fun == 6'b100101 | fun == 6'b101010 | fun == 6'b101011 | fun == 6'b100011 | fun == 6'b100110 | fun == 6'b000000 | fun == 6'b000011 | fun == 6'b000010 | fun == 6'b000100 | fun == 6'b000111 | fun == 6'b000110 | fun == 6'b010000 | fun == 6'b010010;
+
     regjump = fun == 6'b001001 | fun == 6'b001000;
-    mult_div = fun == 6'b011010 | fun == 6'b011011 | fun == 6'b011000 | fun == 6'b011001;
+    mult_div = fun == 6'b010001 | fun == 6'b010011 | fun == 6'b011010 | fun == 6'b011011 | fun == 6'b011000 | fun == 6'b011001;
 
     
     pcwrite = exec2 & !waitrequest;
@@ -87,6 +90,8 @@ always_comb begin
         div_mult_en= 0; 
         div_mult_signed = 0;
         div_mult_op= 2'b00;
+        hitoreg    = 0;
+        lotoreg    = 0;
         link       = 0;
         loadimmed  = 0;
     end
@@ -106,6 +111,8 @@ always_comb begin
         div_mult_en= 0;
         div_mult_signed = 0;
         div_mult_op= 2'b00;
+        hitoreg    = 0;
+        lotoreg    = 0;
         link       = 0;
         loadimmed  = 0;
     end
@@ -131,9 +138,23 @@ always_comb begin
                 regtojump  = regjump; // we want high on a register jump instr
                 div_mult_en= mult_div & exec1;
                 div_mult_signed = fun==6'b011010|fun==6'b011000;
-                div_mult_op =   (fun == 6'b011000 | fun == 6'b011001) ? 2'b10:
-                                ((fun == 6'b011010| fun == 6'b011011) ? 2'b11:
-                                2'b00);
+                if(fun == 6'b010001) begin
+                    div_mult_op = 2'b00;
+                end
+                else if(fun == 6'b010011) begin
+                    div_mult_op = 2'b01;
+                end
+                else if(fun == 6'b011000 | fun == 6'b011001) begin
+                    div_mult_op = 2'b10;
+                end
+                else if(fun == 6'b011010| fun == 6'b011011) begin
+                    div_mult_op = 2'b11;
+                end
+                else begin
+                    div_mult_op = 2'b00;
+                end
+                hitoreg    = fun == 6'b010000; // MFHI
+                lotoreg    = fun == 6'b010010; // MFLO
                 link       = 0;
                 loadimmed  = 0;  //we only use this signal when instruction is LUI
             end
@@ -155,6 +176,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 0;
             end
@@ -174,6 +197,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 0;
             end
@@ -193,6 +218,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 0;
             end
@@ -218,6 +245,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 0;
             end
@@ -240,6 +269,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 1; //extra signal
 
@@ -262,6 +293,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 0;
             end
@@ -281,6 +314,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 0;
             end
@@ -302,6 +337,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 0;
             end
@@ -321,6 +358,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 0; 
             end
@@ -342,6 +381,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 0;
             end
@@ -375,6 +416,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 0;
             end
@@ -406,6 +449,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 0;
             end
@@ -427,6 +472,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 0;
             end
@@ -446,6 +493,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
                 link       = 0;
                 loadimmed  = 0;
             end

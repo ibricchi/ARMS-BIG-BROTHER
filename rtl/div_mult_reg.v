@@ -19,6 +19,8 @@ logic[63:0] in_1_s;
 logic[63:0] in_2_s;
 
 logic[63:0] prod;
+logic[63:0] div;
+logic[63:0] rem;
 
 always_comb begin
     in_1_u = $unsigned(in_1);
@@ -26,6 +28,8 @@ always_comb begin
     in_1_s = $signed(in_1);
     in_2_s = $signed(in_2);
     prod = sin?(in_1_s*in_2_s):(in_1_u*in_2_u);
+    div = sin?(in_1_s/in_2_s):(in_1_u/in_2_u);
+    rem = sin?(in_1_s%in_2_s):(in_1_u%in_2_u);
 end
 
 
@@ -48,8 +52,8 @@ always_ff @(posedge clk) begin
                     lo <= prod[31:0];
                 end
                 2'b11: begin // DIVU
-                    // lo <= sin?div_s:div_u;
-                    // hi <= sin?rem_s:rem_u;
+                    lo <= div[31:0];
+                    hi <= rem[31:0];
                 end
             endcase
         end

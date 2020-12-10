@@ -104,7 +104,7 @@ always_comb begin
             */
             6'b000000: begin /* REGISTER INSTR WITH FN AS DIFFERENCE */
                             // THIS INCLUDES ARITHLOG DIVMULT SHIFT SHIFTV JUMPMOVETO
-                ALUOp[3:0] = 4'b1000; // this is the alu control that tells the alu to process based on function field of instr
+                ALUOp[3:0] = 4'b0010; // this is the alu control that tells the alu to process based on function field of instr
                 ALUSrc     = 0; // the alu must read form register
                 jump       = regjump; // the pc must recieve data from normal +4 increment of pc unless we have a reg jump instr
                 branch     = 0; // same as reason as above

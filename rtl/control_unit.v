@@ -13,7 +13,7 @@ module control_unit(
     due to using an avalon interface, uncecessary reads will also cause stalls in the cpu so these two nead to be state based
     */
     
-    output logic[1:0] ALUOp,    // constant     // see alu_contol for explanation of each possible value
+    output logic[3:0] ALUOp,    // constant     // see alu_contol for explanation of each possible value
     output logic      ALUSrc,   // constant     // if high ALU source is from instruction 16 bit imm, otherwise from registers
 
     output logic      jump,     // constant     // if high jump to position from isntruction imediate, otherwise advance from pc+4
@@ -35,6 +35,12 @@ module control_unit(
     output logic      div_mult_en,
     output logic      div_mult_signed,
     output logic[1:0] div_mult_op
+
+    //for the Return Address Register (linking instruction)
+    output logic      link,
+
+    //an extra signal for LUI
+    output logic      loadimmed
 );
 
 // states
@@ -66,7 +72,7 @@ always_comb begin
     pcwrite = exec2 & !waitrequest;
 
     if(fetch) begin // in fetch send pc to address
-        ALUOp[1:0] = 2'b00;
+        ALUOp[3:0] = 4'b0000;
         ALUSrc     = 0;
         jump       = 0;
         branch     = 0;
@@ -81,9 +87,11 @@ always_comb begin
         div_mult_en= 0; 
         div_mult_signed = 0;
         div_mult_op= 2'b00;
+        link       = 0;
+        loadimmed  = 0;
     end
     else if(decode) begin // in decode store instruction
-        ALUOp[1:0] = 2'b00;
+        ALUOp[3:0] = 4'b0000;
         ALUSrc     = 0;
         jump       = 0;
         branch     = 0;
@@ -98,6 +106,8 @@ always_comb begin
         div_mult_en= 0;
         div_mult_signed = 0;
         div_mult_op= 2'b00;
+        link       = 0;
+        loadimmed  = 0;
     end
     else begin
         case(opcode)
@@ -107,7 +117,7 @@ always_comb begin
             */
             6'b000000: begin /* REGISTER INSTR WITH FN AS DIFFERENCE */
                             // THIS INCLUDES ARITHLOG DIVMULT SHIFT SHIFTV JUMPMOVETO
-                ALUOp[1:0] = 2'b10; // this is the alu control that tells the alu to process based on function field of instr
+                ALUOp[3:0] = 4'b0010; // this is the alu control that tells the alu to process based on function field of instr
                 ALUSrc     = 0; // the alu must read form register
                 jump       = regjump; // the pc must recieve data from normal +4 increment of pc unless we have a reg jump instr
                 branch     = 0; // same as reason as above
@@ -124,11 +134,13 @@ always_comb begin
                 div_mult_op =   (fun == 6'b011000 | fun == 6'b011001) ? 2'b10:
                                 ((fun == 6'b011010| fun == 6'b011011) ? 2'b11:
                                 2'b00);
+                link       = 0;
+                loadimmed  = 0;  //we only use this signal when instruction is LUI
             end
             
             // ARITHLOGI
             6'b001001: begin // ADDIU
-                ALUOp[1:0] = 2'b00; 
+                ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
                 jump       = 0;
                 branch     = 0;
@@ -143,12 +155,46 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 0;
             end
-            6'b001100: begin // ANDI !TODO
-                
+            6'b001100: begin // ANDI !TODO: not yet tested
+                ALUOp[3:0] = 4'b0100;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 0;
             end
-            6'b001101: begin // ORI !TODO
-                
+            6'b001101: begin // ORI !TODO: not yet tested
+                ALUOp[3:0] = 4'b0101;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 0;
             end
             6'b001101: begin // SLTI !TODO
                 
@@ -156,18 +202,52 @@ always_comb begin
             6'b001010: begin // SLTIU !TODO
                 
             end
-            6'b001110: begin // XORI !TODO
-                
+            6'b001110: begin // XORI !TODO: not yet tested
+                ALUOp[3:0] = 4'b0110;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 0;
             end
 
             //LOADI
             6'b011111: begin // LUI
-                
+            //similar to load, but require an extra signal to control the immed field
+                ALUOp[3:0] = 4'b0000; //Don't care
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 1 & (exec1);
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 1; //combine with extra signal
+                regwrite   = 1 & (exec2);
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 1; //extra signal
+
             end
 
             // BRANCH
             6'b000100: begin // BEQ !TODO "THE CURRENT VALUES ARE NOT NECESSARILY CORRECT"
-                ALUOp[1:0] = 2'b01;
+                ALUOp[3:0] = 4'b0001;
                 ALUSrc     = 0;
                 jump       = 0;
                 branch     = 1;
@@ -182,21 +262,88 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 0;
             end
             6'b000101: begin // BNE !TODO
-                
+                ALUOp[3:0] = 4'b1000; 
+                ALUSrc     = 0;
+                jump       = 0;
+                branch     = 1;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0; 
+                memtoreg   = 0;
+                regwrite   = 0;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 0;
             end
 
             // BRANCHZ + OTHER BRANCHZ
             6'b000111: begin // BGTZ !TODO
-                
+                ALUOp[3:0] = 4'b1001;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 1;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0; 
+                memtoreg   = 0;
+                regwrite   = 0;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 0;
             end
             6'b000110: begin // BLEZ !TODO
-            
+                ALUOp[3:0] = 4'b1010;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 1;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0; 
+                memtoreg   = 0;
+                regwrite   = 0;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 0; 
             end
             6'b000001: begin // BLTZ and OTHER_BRANCHZ !TODO
                 // BLTZ has function code of 00000
                 // you'll have to differentiate the different function codes
+                ALUOp[3:0] = 4'b1011;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 1;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0; 
+                memtoreg   = 0;
+                regwrite   = 0;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0; 
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 0;
             end
 
             // LOADSTORE
@@ -213,7 +360,7 @@ always_comb begin
             
             end
             6'b100011: begin // LW
-                ALUOp[1:0] = 2'b00; 
+                ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
                 jump       = 0;
                 branch     = 0;
@@ -228,6 +375,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 0;
             end
             6'b100010: begin // LWL !TODO
                 
@@ -242,7 +391,7 @@ always_comb begin
 
             end
             6'b101011: begin // SW
-                ALUOp[1:0] = 2'b00;
+                ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 1;
                 jump       = 0;
                 branch     = 0;
@@ -257,11 +406,13 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 0;
             end
 
             // JUMP
             6'b000010: begin // J
-                ALUOp[1:0] = 2'b00;
+                ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 0;
                 jump       = 1;
                 branch     = 0;
@@ -276,9 +427,11 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 0;
             end
             6'b000011: begin // JAL !TODO "THESE VALUES ARE MOST LIKELY NOT CORRECT"
-                ALUOp[1:0] = 2'b00;
+                ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 0;
                 jump       = 1;
                 branch     = 0;
@@ -293,6 +446,8 @@ always_comb begin
                 div_mult_en= 0; 
                 div_mult_signed = 0;
                 div_mult_op= 2'b00;
+                link       = 0;
+                loadimmed  = 0;
             end
         endcase
     end

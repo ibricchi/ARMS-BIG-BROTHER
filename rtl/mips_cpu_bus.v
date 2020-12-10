@@ -73,8 +73,8 @@ pc pc_0(
 );
 
 //control unit (not updated yet)
-logic[1:0] ALUOp, div_mult_op;
-logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed;
+logic[3:0] ALUOp, div_mult_op;
+logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, link, loadimmed;
 
 control_unit control_0(
     .opcode(instr[31:26]),
@@ -98,6 +98,8 @@ control_unit control_0(
     .div_mult_en(div_mult_en),
     .div_mult_signed(div_mult_signed),
     .div_mult_op(div_mult_op)
+    .link(link),
+    .loadimmed(loadimmed)
 );
 
 // instr register
@@ -112,7 +114,7 @@ assign instr = (state==2)?readdata:instr_reg;
 logic[31:0] read_data1, read_data2;
 logic[4:0] write_reg;
 logic[31:0] write_data;
-assign write_reg = (regdst == 0) ? instr[20:16] : instr[15:11];
+assign write_reg = (regdst == 0) ? ((link == 1)? 5'b11111:instr[20:16]) : instr[15:11];
 
 register_file reg_file_0(
     .clk(clk),
@@ -160,6 +162,7 @@ logic[3:0] ALUCtrl;
 alu_control alu_ctrl_0(
     .ALUOp(ALUOp),
     .FuncCode(instr[5:0]),
+    .BranchzFunc(instr[20:16]),
     .ALUCtrl(ALUCtrl)
 );
 
@@ -199,6 +202,9 @@ assign address = pctoadd?pc_out:ALU_out;
 assign writedata = read_data2;
 
 //MUX3
-assign write_data = (memtoreg == 0) ? ALU_out : readdata;
+//an extra loadi instr to check
+logic[31:0] loadresult;
+assign loadresult = {instr[15:0],16'h0000};
+assign write_data = (memtoreg == 0) ? ALU_out : (   (loadimmed == 1) ?  loadresult : readdata  );
 
 endmodule

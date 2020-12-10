@@ -15,7 +15,12 @@ always_comb begin
         4'b0110: result = a - b; //SUB
         4'b0111: result = (a < b) ? 1:0; //SLT (set on less than)
         4'b1100: result = ~(a | b);//NOR
-        4'b1101: result = a ^ b; //XOR
+        4'b1101: result = a ^ b; //XOR (BEQ)
+        4'b1000: result = (a != b) ? 0:1; //Not XOR (BNE)
+        4'b1001: result = ($signed(a) > 0) ? 0:1; //BGTZ(set on if a greater than 0)
+        4'b1010: result = ($signed(a) <= 0) ? 0:1; //BLEZ(set on if a less than or equal to 0)
+        4'b1011: result = ($signed(a) >= 0) ? 0:1;  //BGEZ(set on if a greater than or equal to 0)
+        4'b1111: result = ($signed(a) < 0) ? 0:1; //BLTZ(set on if a less than 0)
         default: result = 0;
     endcase
 end

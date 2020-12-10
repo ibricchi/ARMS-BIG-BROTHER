@@ -74,7 +74,7 @@ pc pc_0(
 //control unit (not updated yet)
 logic[3:0] ALUOp;
 logic[1:0] div_mult_op;
-logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, link, loadimmed;
+logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, hitoreg, lotoreg, link, loadimmed;
 
 control_unit control_0(
     .opcode(instr[31:26]),
@@ -98,6 +98,8 @@ control_unit control_0(
     .div_mult_en(div_mult_en),
     .div_mult_signed(div_mult_signed),
     .div_mult_op(div_mult_op),
+    .hitoreg(hitoreg),
+    .lotoreg(lotoreg),
     .link(link),
     .loadimmed(loadimmed)
 );
@@ -206,6 +208,23 @@ assign writedata = read_data2;
 //an extra loadi instr to check
 logic[31:0] loadresult;
 assign loadresult = {instr[15:0],16'h0000};
-assign write_data = (memtoreg == 0) ? ALU_out : (   (loadimmed == 1) ?  loadresult : readdata  );
+
+always_comb begin
+    if(memtoreg) begin
+        write_data = readdata;
+    end
+    else if(loadimmed) begin
+        write_data = loadresult;
+    end
+    else if(hitoreg) begin
+        write_data = hi;
+    end
+    else if(lotoreg) begin
+        write_data = lo;
+    end
+    else begin
+        write_data = ALU_out;
+    end
+end
 
 endmodule

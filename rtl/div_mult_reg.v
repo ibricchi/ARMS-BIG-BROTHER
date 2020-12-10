@@ -45,7 +45,7 @@ always_ff @(posedge clk) begin
                     hi <= in_1;
                 end
                 2'b01: begin // MTLO
-                    lo <= in_2;
+                    lo <= in_1;
                 end
                 2'b10: begin // MULTU
                     hi <= prod[63:32];

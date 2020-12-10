@@ -23,10 +23,7 @@ always_comb begin
         5'b01101: result = a ^ b; //XOR
         5'b01110: result = b << a; // SLLV
         5'b01111: result = $signed(b) >>> a; // SRAV
-        5'b10000: begin
-            result = b >> a; // SRLV
-            $display("%d >> %d = %d", b, a, result);
-        end
+        5'b10000: result = b >> a; // SRLV
 
         5'b11000: result = (a != b) ? 0:1; //BNE(set on equal)
         5'b11001: result = ($signed(a) > 0) ? 0:1; //BGTZ(set on if a greater than 0)

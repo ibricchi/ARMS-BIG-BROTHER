@@ -32,7 +32,12 @@ module control_unit(
     output logic      pcwrite,
     output logic      regtojump,
 
-    output logic      link, //for the Return Address Register (linking instruction)
+    output logic      div_mult_en,
+    output logic      div_mult_signed,
+    output logic[1:0] div_mult_op,
+
+    //for the Return Address Register (linking instruction)
+    output logic      link,
 
     //an extra signal for LUI
     output logic      loadimmed
@@ -48,6 +53,7 @@ logic exec2;
 // functions
 logic arith;
 logic regjump;
+logic mult_div;
 
 always_comb begin
     //default settings for R-format instructions
@@ -60,6 +66,8 @@ always_comb begin
 
     arith = fun == 6'b100001 | fun == 6'b100100 | fun == 6'b100101 | fun == 6'b101010 | fun == 6'b101011 | fun == 6'b100011 | fun == 6'b100110;
     regjump = fun == 6'b001001 | fun == 6'b001000;
+    mult_div = fun == 6'b011010 | fun == 6'b011011 | fun == 6'b011000 | fun == 6'b011001;
+
     
     pcwrite = exec2 & !waitrequest;
 
@@ -76,6 +84,9 @@ always_comb begin
         inwrite    = 0;
         pctoadd    = 1;
         regtojump  = 0;
+        div_mult_en= 0; 
+        div_mult_signed = 0;
+        div_mult_op= 2'b00;
         link       = 0;
         loadimmed  = 0;
     end
@@ -92,6 +103,10 @@ always_comb begin
         inwrite    = 1;
         pctoadd    = 1;
         regtojump  = 0;
+        div_mult_en= 0;
+        div_mult_signed = 0;
+        div_mult_op= 2'b00;
+        link       = 0;
         loadimmed  = 0;
     end
     else begin
@@ -114,6 +129,12 @@ always_comb begin
                 inwrite    = 0; // we don't want instr register to be overwritten
                 pctoadd    = 0; // we don't actually care what happens here
                 regtojump  = regjump; // we want high on a register jump instr
+                div_mult_en= mult_div & exec1;
+                div_mult_signed = fun==6'b011010|fun==6'b011000;
+                div_mult_op =   (fun == 6'b011000 | fun == 6'b011001) ? 2'b10:
+                                ((fun == 6'b011010| fun == 6'b011011) ? 2'b11:
+                                2'b00);
+                link       = 0;
                 loadimmed  = 0;  //we only use this signal when instruction is LUI
             end
             
@@ -131,6 +152,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 0;
             end
             6'b001100: begin // ANDI !TODO: not yet tested
@@ -146,6 +171,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 0;
             end
             6'b001101: begin // ORI !TODO: not yet tested
@@ -161,6 +190,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 0;
             end
             6'b001101: begin // SLTI !TODO
@@ -182,6 +215,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 0;
             end
 
@@ -200,6 +237,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 1; //extra signal
 
             end
@@ -218,6 +259,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 0;
             end
             6'b000101: begin // BNE !TODO
@@ -233,6 +278,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 0;
             end
 
@@ -250,6 +299,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 0;
             end
             6'b000110: begin // BLEZ !TODO
@@ -265,6 +318,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 0; 
             end
             6'b000001: begin // BLTZ and OTHER_BRANCHZ !TODO
@@ -282,6 +339,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0; 
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 0;
             end
 
@@ -311,6 +372,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 0;
             end
             6'b100010: begin // LWL !TODO
@@ -338,6 +403,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 0;
             end
 
@@ -355,6 +424,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 0;
             end
             6'b000011: begin // JAL !TODO "THESE VALUES ARE MOST LIKELY NOT CORRECT"
@@ -370,6 +443,10 @@ always_comb begin
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                link       = 0;
                 loadimmed  = 0;
             end
         endcase

@@ -52,6 +52,7 @@ end
 
 always_ff @(posedge clk) begin // check if pc is at 0 and terminate
     if(state!=0 & pc_out == 0) begin
+        $display(hi, " : ", lo);
         active <= 0;
         state <= 0; // halt
     end
@@ -73,13 +74,15 @@ pc pc_0(
 
 //control unit (not updated yet)
 logic[3:0] ALUOp;
-logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, link, loadimmed;
+logic[1:0] div_mult_op;
+logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, link, loadimmed;
 
 control_unit control_0(
     .opcode(instr[31:26]),
     .state(state),
     .fun(instr[5:0]),
     .waitrequest(waitrequest),
+
     .ALUOp(ALUOp),
     .ALUSrc(ALUSrc),
     .jump(jump),
@@ -93,6 +96,9 @@ control_unit control_0(
     .pctoadd(pctoadd),
     .pcwrite(pcwrite),
     .regtojump(regtojump),
+    .div_mult_en(div_mult_en),
+    .div_mult_signed(div_mult_signed),
+    .div_mult_op(div_mult_op),
     .link(link),
     .loadimmed(loadimmed)
 );
@@ -124,6 +130,22 @@ register_file reg_file_0(
     .read_data1(read_data1),
     .read_data2(read_data2),
     .register_v0(register_v0)
+);
+
+// multiply and divide alu and register
+logic[31:0] hi, lo;
+div_mult_reg div_mult_reg_0(
+    .clk(clk),
+    .reset(reset),
+
+    .write_en(div_mult_en),
+    .sin(div_mult_signed),
+    .op(div_mult_op),
+    .in_1(read_data1),
+    .in_2(read_data2),
+
+    .hi(hi),
+    .lo(lo)
 );
 
 logic[31:0] extend_out;

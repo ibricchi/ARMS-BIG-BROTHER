@@ -158,7 +158,7 @@ logic[31:0] shift_out;
 assign shift_out = extend_out << 2;
 
 //ALU Control
-logic[3:0] ALUCtrl;
+logic[4:0] ALUCtrl;
 alu_control alu_ctrl_0(
     .ALUOp(ALUOp),
     .FuncCode(instr[5:0]),

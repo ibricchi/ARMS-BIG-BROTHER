@@ -3,7 +3,7 @@ module alu_control(
     input logic[5:0] FuncCode,
     input logic[4:0] BranchzFunc,
 
-    output logic[3:0] ALUCtrl
+    output logic[4:0] ALUCtrl
 );
 
 logic[4:0] func;
@@ -21,6 +21,9 @@ always_comb begin
         6'b000000: func = 5'b01001; //sll
         6'b000011: func = 5'b01010; //sra
         6'b000010: func = 5'b01011; //srl
+        6'b000100: func = 5'b01110; //sllv
+        6'b000111: func = 5'b01111; //srav
+        6'b000110: func = 5'b10000; //srlv
 
         default: func = 5'b00000;
     endcase

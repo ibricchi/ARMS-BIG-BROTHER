@@ -18,6 +18,7 @@ reg [31:0] memory [4095:0];
 initial begin
     integer i;
     /* Initialise to zero by default */
+    //memory[0] = 32'h00211021;
     for (i=0; i<4096; i++) begin
         memory[i]=0;
     end

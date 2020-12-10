@@ -20,17 +20,24 @@ fi
 
 for i in ${TESTCASES} ; do
     TESTNAME=$(basename ${i} .asm)
-    TEST_INSTRUCTION="$(grep -oE ^$INSTRUCTION <<< $TESTNAME || true)" # '|| true prevents grep from exiting on no match'
+    TEST_INSTRUCTION="$(grep -oE ^$INSTRUCTION\_ <<< $TESTNAME || true)" # '|| true prevents grep from exiting on no match'
+    TEST_INSTRUCTION="$(sed -E s/_// <<< ${TEST_INSTRUCTION} || true)"
 
     if [[ "$INSTRUCTION" == "$TEST_INSTRUCTION" ]] || [[ "$INSTRUCTION" == "all" ]] ; then
-        ./test/run_one_testcase.sh ${SOURCE_DIRECTORY} ${CPU_VARIANT} ${TESTNAME} ${INSTRUCTION}
+        # Extract real instruction name for printing to cout
+        if [[ "$INSTRUCTION" == "all" ]] ; then
+            TEST_INSTRUCTION="$(grep -oE ^[a-z]+_ <<< ${TESTNAME} || true)"
+            TEST_INSTRUCTION="$(sed -E s/_// <<< ${TEST_INSTRUCTION} || true)"
+        fi
+
+        ./test/run_one_testcase.sh ${SOURCE_DIRECTORY} ${CPU_VARIANT} ${TESTNAME} ${TEST_INSTRUCTION}
     fi
 done
 
-for i in ${C_TEST_FILES} ; do
-    TESTNAME=$(basename ${i} .c)
-    
-    if [[ "$INSTRUCTION" == "all" ]] || [[ "$INSTRUCTION" == "c" ]] ; then
+# Only test c-programs if specified. Not tested when no instruction is specified.
+if [[ "$INSTRUCTION" == "c" ]] ; then
+    for i in ${C_TEST_FILES} ; do
+        TESTNAME=$(basename ${i} .c)
         ./test/run_one_testcase.sh ${SOURCE_DIRECTORY} ${CPU_VARIANT} ${TESTNAME} ${INSTRUCTION} "yes"
-    fi
-done
+    done
+fi

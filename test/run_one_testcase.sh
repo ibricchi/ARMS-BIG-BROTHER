@@ -37,7 +37,7 @@ RESULT=$?
 set -e
 
 if [[ "${RESULT}" -ne 0 ]] ; then
-   echo "${TESTCASE} ${INSTRUCTION} Fail"
+   echo "${TESTCASE} ${INSTRUCTION} Fail  # Verilog testbench returned error code"
    exit
 fi
 
@@ -56,16 +56,22 @@ if [[ "$IS_C_PROGRAM" == "yes" ]] ; then
 else
    ./test/tools/bin/asm_reference_simulator < ./test/binary/${TESTCASE}.hex > ./test/reference/${TESTCASE}.out-v0
 fi
-set -e
-
->&2 echo "  5 - Comparing output"
-set +e
-diff -w ./test/reference/${TESTCASE}.out-v0 ./test/output/mips_cpu_${CPU_VARIANT}_tb_${TESTCASE}.out-v0
 RESULT=$?
 set -e
 
 if [[ "${RESULT}" -ne 0 ]] ; then
-   echo "${TESTCASE} ${INSTRUCTION} Fail"
+   echo "${TESTCASE} ${INSTRUCTION} Fail  # Reference simulator returned error code"
+   exit
+fi
+
+>&2 echo "  5 - Comparing output"
+set +e
+diff -w ./test/reference/${TESTCASE}.out-v0 ./test/output/mips_cpu_${CPU_VARIANT}_tb_${TESTCASE}.out-v0 >&2
+RESULT=$?
+set -e
+
+if [[ "${RESULT}" -ne 0 ]] ; then
+   echo "${TESTCASE} ${INSTRUCTION} Fail  # Final register v0 value does not match"
 else
    echo "${TESTCASE} ${INSTRUCTION} Pass"
 fi

@@ -50,6 +50,8 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"LWR",     0b1100110}, // LoadStore
     {"MTHI",    0b010001}, // MoveTo
     {"MTLO",    0b010011}, // MoveTo
+    {"MFHI",    0b010000}, // MoveTo
+    {"MFLO",    0b010010}, // MoveTo
     {"MULT",    0b011000},
     {"MULTU",   0b011001},
     {"OR",      0b100101},
@@ -669,6 +671,19 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         }
         out |= rs;
         out = out << 21 | op;
+        break;
+    }
+    case 0b010000: // MFHI
+    case 0b010010: // MFLO
+    {
+        uint8_t rd = read_reg(it, end, false);
+        if(error) return 0;
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out |= rd;
+        out = out << 11 | op;
         break;
     }
     // ArithLogI

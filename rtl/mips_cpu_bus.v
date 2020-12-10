@@ -24,7 +24,7 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " Readdata: ", readdata, " read: ", read, " address", address);
+    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " ALU: ", ALU_out);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
@@ -73,7 +73,8 @@ pc pc_0(
 
 //control unit (not updated yet)
 logic[3:0] ALUOp;
-logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, link,loadimmed;
+logic[1:0] div_mult_op;
+logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, hitoreg, lotoreg, link, loadimmed;
 
 control_unit control_0(
     .opcode(instr[31:26]),
@@ -81,6 +82,7 @@ control_unit control_0(
     .fun(instr[5:0]),
     .branchFunc(instr[20:16]),
     .waitrequest(waitrequest),
+
     .ALUOp(ALUOp),
     .ALUSrc(ALUSrc),
     .jump(jump),
@@ -94,6 +96,11 @@ control_unit control_0(
     .pctoadd(pctoadd),
     .pcwrite(pcwrite),
     .regtojump(regtojump),
+    .div_mult_en(div_mult_en),
+    .div_mult_signed(div_mult_signed),
+    .div_mult_op(div_mult_op),
+    .hitoreg(hitoreg),
+    .lotoreg(lotoreg),
     .link(link),
     .loadimmed(loadimmed)
 
@@ -128,6 +135,22 @@ register_file reg_file_0(
     .register_v0(register_v0)
 );
 
+// multiply and divide alu and register
+logic[31:0] hi, lo;
+div_mult_reg div_mult_reg_0(
+    .clk(clk),
+    .reset(reset),
+
+    .write_en(div_mult_en),
+    .sin(div_mult_signed),
+    .op(div_mult_op),
+    .in_1(read_data1),
+    .in_2(read_data2),
+
+    .hi(hi),
+    .lo(lo)
+);
+
 logic[31:0] extend_out;
 assign extend_out = {16'h0000, instr[15:0]};
 
@@ -139,7 +162,7 @@ logic[31:0] shift_out;
 assign shift_out = extend_out << 2;
 
 //ALU Control
-logic[3:0] ALUCtrl;
+logic[4:0] ALUCtrl;
 alu_control alu_ctrl_0(
     .ALUOp(ALUOp),
     .FuncCode(instr[5:0]),
@@ -154,6 +177,7 @@ logic[31:0] ALU_out;
 alu alu_0(
     .a(read_data1),
     .b(alu_b),
+    .as(instr[10:6]),
     .alu_control(ALUCtrl),
     .result(ALU_out),
     .zero(zero)
@@ -185,7 +209,26 @@ assign writedata = read_data2;
 //MUX3
 logic[31:0] loadresult;
 assign loadresult = {instr[15:0],16'h0000};
-assign write_data = (memtoreg == 0) ? ( (link == 0) ? ALU_out : pc_out+4 ) : (   (loadimmed == 1) ?  loadresult : readdata  );
 
+always_comb begin
+    if(memtoreg) begin
+        write_data = readdata;
+    end
+    else if(link) begin
+        write_data = pc_out+4;
+    end
+    else if(loadimmed) begin
+        write_data = loadresult;
+    end
+    else if(hitoreg) begin
+        write_data = hi;
+    end
+    else if(lotoreg) begin
+        write_data = lo;
+    end
+    else begin
+        write_data = ALU_out;
+    end
+end
 
 endmodule

@@ -120,7 +120,7 @@ always_comb begin
                 pctoadd    = 0; // we don't actually care what happens here
                 regtojump  = regjump; // we want high on a register jump instr
                 div_mult_en= mult_div & exec1;
-                div_mult_signed = fun==6'b011010|6'b011000;
+                div_mult_signed = fun==6'b011010|fun==6'b011000;
                 div_mult_op =   (fun == 6'b011000 | fun == 6'b011001) ? 2'b10:
                                 ((fun == 6'b011010| fun == 6'b011011) ? 2'b11:
                                 2'b00);

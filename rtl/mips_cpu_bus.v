@@ -29,23 +29,23 @@ always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low cha
         0: begin // HALT
             state <= 1;
             active <= 1;
-            // $display("Entering FETCH STATE: ");
+            $display("Entering FETCH STATE: ");
         end
         1: begin // FETCH
             state <= 2;
-            // $display("Entering DECO STATE: ");
+            $display("Entering DECO STATE: ");
         end
         2: begin // DECODE
             state <= 3;
-            // $display("Entering EXEC1 STATE: ");
+            $display("Entering EXEC1 STATE: ");
         end
         3: begin // EXEC1
             state <= 4;
-            // $display("Entering EXEC2 STATE: ");
+            $display("Entering EXEC2 STATE: ");
         end
         4: begin // EXEC2
             state <= 1;
-            // $display("Entering FETCH STATE: ");
+            $display("Entering FETCH STATE: ");
         end
     endcase
 end
@@ -173,6 +173,7 @@ logic[31:0] ALU_out;
 alu alu_0(
     .a(read_data1),
     .b(alu_b),
+    .as(instr[10:6]),
     .alu_control(ALUCtrl),
     .result(ALU_out),
     .zero(zero)

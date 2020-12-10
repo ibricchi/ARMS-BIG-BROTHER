@@ -18,7 +18,9 @@ always_comb begin
         6'b100111: func = 5'b01100; //nor
         6'b101011: func = 5'b00111; //sltu
         6'b101010: func = 5'b01000; //slt
-        // 6'b000000: func = 5'b01001; //sll
+        6'b000000: func = 5'b01001; //sll
+        6'b000011: func = 5'b01010; //sra
+        6'b000010: func = 5'b01011; //srl
 
         default: func = 5'b00000;
     endcase

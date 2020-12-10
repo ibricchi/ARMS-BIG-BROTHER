@@ -64,7 +64,7 @@ always_comb begin
     exec1 = state==3;
     exec2 = state==4;
 
-    arith = fun == 6'b100001 | fun == 6'b100100 | fun == 6'b100101 | fun == 6'b101010 | fun == 6'b101011 | fun == 6'b100011 | fun == 6'b100110;
+    arith = fun == 6'b100001 | fun == 6'b100100 | fun == 6'b100101 | fun == 6'b101010 | fun == 6'b101011 | fun == 6'b100011 | fun == 6'b100110 | fun == 6'b000000 | fun == 6'b000011 | fun == 6'b000010;
     regjump = fun == 6'b001001 | fun == 6'b001000;
     mult_div = fun == 6'b011010 | fun == 6'b011011 | fun == 6'b011000 | fun == 6'b011001;
 

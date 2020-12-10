@@ -1,7 +1,7 @@
 module alu(
     input logic[31:0]  a,
     input logic[31:0]  b,
-    input logic[4:0]   sa,
+    input logic[4:0]   as,
     input logic[4:0]   alu_control,
 
     output logic[31:0] result,
@@ -16,9 +16,9 @@ always_comb begin
         5'b00110: result = a - b; //SUB
         5'b00111: result = a < b; //SLTU (set on less than)
         5'b01000: result = $signed(a)<$signed(b); // SLT
-        5'b01001: result = b << sa; // SLL
-        5'b01010: result = b >>> sa; // SRA
-        5'b01011: result = b >> sa; // SRL 
+        5'b01001: result = b << as; // SLL
+        5'b01010: result = $signed(b) >>> as; // SRA
+        5'b01011: result = b >> as; // SRL 
         5'b01100: result = ~(a | b);//NOR
         5'b01101: result = a ^ b; //XOR
         5'b01110: result = b << a; // SLLV

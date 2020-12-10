@@ -13,7 +13,7 @@ module control_unit(
     due to using an avalon interface, uncecessary reads will also cause stalls in the cpu so these two nead to be state based
     */
     
-    output logic[1:0] ALUOp,    // constant     // see alu_contol for explanation of each possible value
+    output logic[3:0] ALUOp,    // constant     // see alu_contol for explanation of each possible value
     output logic      ALUSrc,   // constant     // if high ALU source is from instruction 16 bit imm, otherwise from registers
 
     output logic      jump,     // constant     // if high jump to position from isntruction imediate, otherwise advance from pc+4
@@ -30,7 +30,9 @@ module control_unit(
     output logic      pctoadd,   // constant     // if high pass PC to memory address otehrwise pass alu output
 
     output logic      pcwrite,
-    output logic      regtojump
+    output logic      regtojump,
+
+    output logic      link      //for the Return Address Register //linking instruction 
 );
 
 // states
@@ -59,7 +61,7 @@ always_comb begin
     pcwrite = exec2 & !waitrequest;
 
     if(fetch) begin // in fetch send pc to address
-        ALUOp[1:0] = 2'b00;
+        ALUOp[3:0] = 4'b0000;
         ALUSrc     = 0;
         jump       = 0;
         branch     = 0;
@@ -71,9 +73,10 @@ always_comb begin
         inwrite    = 0;
         pctoadd    = 1;
         regtojump  = 0;
+        link = 0;
     end
     else if(decode) begin // in decode store instruction
-        ALUOp[1:0] = 2'b00;
+        ALUOp[3:0] = 4'b0000;
         ALUSrc     = 0;
         jump       = 0;
         branch     = 0;
@@ -94,7 +97,7 @@ always_comb begin
             */
             6'b000000: begin /* REGISTER INSTR WITH FN AS DIFFERENCE */
                             // THIS INCLUDES ARITHLOG DIVMULT SHIFT SHIFTV JUMPMOVETO
-                ALUOp[1:0] = 2'b10; // this is the alu control that tells the alu to process based on function field of instr
+                ALUOp[3:0] = 4'b1000; // this is the alu control that tells the alu to process based on function field of instr
                 ALUSrc     = 0; // the alu must read form register
                 jump       = regjump; // the pc must recieve data from normal +4 increment of pc unless we have a reg jump instr
                 branch     = 0; // same as reason as above
@@ -110,7 +113,7 @@ always_comb begin
             
             // ARITHLOGI
             6'b001001: begin // ADDIU
-                ALUOp[1:0] = 2'b00; 
+                ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
                 jump       = 0;
                 branch     = 0;
@@ -145,8 +148,8 @@ always_comb begin
             end
 
             // BRANCH
-            6'b000100: begin // BEQ !TODO "THE CURRENT VALUES ARE NOT NECESSARILY CORRECT"
-                ALUOp[1:0] = 2'b01;
+            6'b000100: begin // BEQ 
+                ALUOp[3:0] = 4'b0001;
                 ALUSrc     = 0;
                 jump       = 0;
                 branch     = 1;
@@ -159,20 +162,65 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
             end
-            6'b000101: begin // BNE !TODO
-                
+            6'b000101: begin // BNE
+                ALUOp[3:0] = 4'b1000; 
+                ALUSrc     = 0;
+                jump       = 0;
+                branch     = 1;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0; 
+                memtoreg   = 0;
+                regwrite   = 0;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
             end
 
             // BRANCHZ + OTHER BRANCHZ
-            6'b000111: begin // BGTZ !TODO
-                
+            6'b000111: begin // BGTZ 
+                ALUOp[3:0] = 4'b1001;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 1;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0; 
+                memtoreg   = 0;
+                regwrite   = 0;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
             end
-            6'b000110: begin // BLEZ !TODO
-            
+            6'b000110: begin // BLEZ 
+                ALUOp[3:0] = 4'b1010;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 1;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0; 
+                memtoreg   = 0;
+                regwrite   = 0;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;                
             end
-            6'b000001: begin // BLTZ and OTHER_BRANCHZ !TODO
+            6'b000001: begin // BLTZ and OTHER_BRANCHZ 
                 // BLTZ has function code of 00000
                 // you'll have to differentiate the different function codes
+                ALUOp[3:0] = 4'b1011;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 1;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0; 
+                memtoreg   = 0;
+                regwrite   = 0;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0; 
             end
 
             // LOADSTORE
@@ -189,7 +237,7 @@ always_comb begin
             
             end
             6'b100011: begin // LW
-                ALUOp[1:0] = 2'b00; 
+                ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
                 jump       = 0;
                 branch     = 0;
@@ -215,7 +263,7 @@ always_comb begin
 
             end
             6'b101011: begin // SW
-                ALUOp[1:0] = 2'b00;
+                ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 1;
                 jump       = 0;
                 branch     = 0;
@@ -231,7 +279,7 @@ always_comb begin
 
             // JUMP
             6'b000010: begin // J
-                ALUOp[1:0] = 2'b00;
+                ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 0;
                 jump       = 1;
                 branch     = 0;
@@ -244,8 +292,9 @@ always_comb begin
                 pctoadd    = 0;
                 regtojump  = 0;
             end
-            6'b000011: begin // JAL !TODO "THESE VALUES ARE MOST LIKELY NOT CORRECT"
-                ALUOp[1:0] = 2'b00;
+            6'b000011: begin // JAL 
+            /*Store the return address to Register 31 */
+                ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 0;
                 jump       = 1;
                 branch     = 0;
@@ -253,15 +302,14 @@ always_comb begin
                 memwrite   = 0;
                 regdst     = 0; 
                 memtoreg   = 0;
-                regwrite   = 1 & exec2;
+                regwrite   = exec2;
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
+                link = 1;
             end
         endcase
     end
 end
 
 endmodule
-
-

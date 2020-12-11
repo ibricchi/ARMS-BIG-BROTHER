@@ -74,6 +74,7 @@ pc pc_0(
 //control unit (not updated yet)
 logic[3:0] ALUOp;
 logic[1:0] div_mult_op;
+logic[2:0] ExtendOp;
 logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, hitoreg, lotoreg, link, loadimmed;
 
 control_unit control_0(
@@ -102,8 +103,9 @@ control_unit control_0(
     .hitoreg(hitoreg),
     .lotoreg(lotoreg),
     .link(link),
-    .loadimmed(loadimmed)
-
+    .loadimmed(loadimmed),
+    
+    .ExtendOp(ExtendOp)
 );
 
 // instr register
@@ -210,6 +212,13 @@ assign writedata = read_data2;
 logic[31:0] loadresult;
 assign loadresult = {instr[15:0],16'h0000};
 
+//I really hate this way of implementing this function, but selection in wire (like instr[5:2]) in not allow in always_comb
+logic[31:0] ExtendRes1,ExtendRes2,ExtendRes3,ExtendRes0;
+assign ExtendRes3 = {{25{readdata[7]}}, readdata[6:0] };    //LB
+assign ExtendRes2 = {24'h000000,readdata[7:0]};          //LBU
+assign ExtendRes1 = { {17{readdata[15]}}, readdata[14:0] }; //LH
+assign ExtendRes0 = {16'h0000,readdata[15:0]};           //LHUs
+
 always_comb begin
     if(memtoreg) begin
         write_data = readdata;
@@ -226,6 +235,15 @@ always_comb begin
     else if(lotoreg) begin
         write_data = lo;
     end
+    else if(ExtendOp != 0)begin 
+        write_data = ExtendRes1;
+        case(ExtendOp)
+            3'b100:write_data = ExtendRes0;
+            3'b101:write_data = ExtendRes1;
+            3'b110:write_data = ExtendRes2;
+            3'b111:write_data = ExtendRes3;
+        endcase 
+    end 
     else begin
         write_data = ALU_out;
     end

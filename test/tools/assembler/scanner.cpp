@@ -10,8 +10,8 @@ Token::Token(string _name, uint32_t _data, uint32_t _line, uint32_t _memLine, st
     name = _name;
     data = _data;
 
-    memLine = _memLine;
     label = _label;
+    memLine = _memLine;
 
     line = _line;
 }

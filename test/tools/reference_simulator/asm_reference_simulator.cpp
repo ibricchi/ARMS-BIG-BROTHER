@@ -466,6 +466,10 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         {
             break;
         }
+        case 0b001111: // LUI
+        {
+            break;
+        }
         case 0b100010: // LWL
         {
             break;

@@ -515,10 +515,34 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         }
         case 0b100010: // LWL
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            // reference simulator memory supports word rather than byte addressing
+            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
+            assert((regs[sReg] + immediate) % 4 == 0);            // needs to be word aligned
+            uint32_t lowerByte = getByteFromWord(word, 2);
+            uint32_t higherByte = getByteFromWord(word, 3);
+            // combine lowerByte and higherByte into half-word
+            regs[tReg] = higherByte << 8;
+            regs[tReg] |= lowerByte;
+            // shift to upper 16 bits
+            regs[tReg] <<= 16;
+            pc++;
             break;
         }
         case 0b100110: // LWR
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            // reference simulator memory supports word rather than byte addressing
+            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
+            assert((regs[sReg] + immediate) % 4 == 0);            // needs to be word aligned
+            uint32_t lowerByte = getByteFromWord(word, 0);
+            uint32_t higherByte = getByteFromWord(word, 1);
+            // combine lowerByte and higherByte into half-word
+            regs[tReg] = higherByte << 8;
+            regs[tReg] |= lowerByte;
+            pc++;
             break;
         }
         case 0b100011: // LW

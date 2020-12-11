@@ -97,6 +97,10 @@ void Scanner::expectWhiteSpace(string::iterator& it, string::iterator end){
     bool allSpaces = true;
     string msg = "";
     while(it != end){
+        if(*it == '#'){
+            it = end;
+            return;
+        }
         allSpaces &= (*it == ' ');
         msg += *it;
         it++;
@@ -923,6 +927,7 @@ void Scanner::scanLine(string in){
         }
         // if first thing is a label
         else if(str.size() > 0 && (*it) == ':'){
+            // cout << "Added label " << str << endl;
             labels.push_back({str, memLine, line, memLine, ""});
             str = ""; // reset str to "" to basically initialise the loop so it can find another label isntr or const line
             continue;
@@ -937,6 +942,10 @@ void Scanner::scanLine(string in){
         // if we don't know what the first thing is yet
         if(is_alpha_numeric(*it)){
             str += *it;
+        }
+        else if(*it == '#'){ // if we find a comment
+            it = in.end();
+            return;
         }
         else if(*it != ' '){ // we have already checked all valid inputs so anything else is an error
             string it_str = string() + *it;

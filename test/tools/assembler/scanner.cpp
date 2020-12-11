@@ -54,6 +54,7 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"MFLO",    0b010010}, // MoveTo
     {"MULT",    0b011000},
     {"MULTU",   0b011001},
+    {"NOP",     0b111111}, // I JUST CHOSE A RANDOM NUMBER THAT WASN'T IN USE
     {"OR",      0b100101},
     {"ORI",     0b001101},
     {"SB",      0b1101000}, // LoadStore
@@ -495,6 +496,16 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     // anytime any of the above finds an error return 0 as binary
     // this is fine as the error flag is set to true and user of the scanner should check it before assuming that the output is valid
 
+    // NOP
+    case 0b111111:
+    {
+        if(it != end){
+            expectWhiteSpace(it, end);
+            if(error) return 0;
+        }
+        out = 0;
+        break;
+    }
     // ArithLog
     case 0b100001: // ADD
     case 0b100100: // AND
@@ -504,6 +515,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b100011: // SUBU
     case 0b100110: // XOR
     {
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rd = read_reg(it, end, true); // read register
         if(error) return 0;
         if(it == end){ // ensure end hasn't been reached
@@ -538,6 +550,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b011000: // MULT
     case 0b011001: // MULTU
     {
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rs = read_reg(it, end, true);
         if(error) return 0;
         if(it == end){
@@ -562,6 +575,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b000011: // SRA
     case 0b000010: // SRL
     {
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rd = read_reg(it, end, true);
         if(error) return 0;
         if(it == end){
@@ -595,6 +609,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b000111: // SRAV
     case 0b000110: // SRLV
     {
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rd = read_reg(it, end, true);
         if(error) return 0;
         if(it == end){
@@ -626,6 +641,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     // JumpR
     case 0b001001: // JALR
     {
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rdors = read_reg(it, end, false, false, true);
         if(error) return 0;
         if(it == end || *it == ' '){
@@ -663,6 +679,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b010001: // MTHI
     case 0b010011: // MTLO
     {
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rs = read_reg(it, end, false);
         if(error) return 0;
         if(it != end){
@@ -676,6 +693,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b010000: // MFHI
     case 0b010010: // MFLO
     {
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rd = read_reg(it, end, false);
         if(error) return 0;
         if(it != end){
@@ -694,6 +712,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b001011: // SLTIU
     case 0b001110: // XORI
     {
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rt = read_reg(it, end, true);
         if(error) return 0;
         if(it == end){
@@ -724,6 +743,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     }
     // LoadI
     case 0b011111:{ // LUI
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rt = read_reg(it, end, true);
         if(error) return 0;
         if(it == end){
@@ -746,6 +766,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b1000100: // BEQ
     case 0b1000101: // BNE
     {
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rs = read_reg(it, end, true);
         if(error) return 0;
         if(it == end){
@@ -779,6 +800,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b1000110: // BLEZ
     case 0b1000001: // BLTZ
     {
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rs = read_reg(it, end, true);
         if(error) return 0;
         if(it == end){
@@ -803,6 +825,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b11110001: // BGEZAL
     case 0b11110000: // BLTZAL
     {
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rs = read_reg(it, end, true);
         if(error) return 0;
         if(it == end){
@@ -835,6 +858,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b1101001: // SH
     case 0b1101011: // SW
     {
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rt = read_reg(it, end, true);
         if(error) return 0;
         if(it == end){
@@ -864,6 +888,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
     case 0b1000010: // J
     case 0b1000011: // JAL
     {
+        skipWhiteSpace(it, end); // skip any whitespace before arguments
         label = read_label(it, end);
         if(error) return 0;
         if(it != end){
@@ -890,7 +915,6 @@ void Scanner::scanLine(string in){
     for(; it != in.end(); it++){
         // if first thing is an instr
         if(str.size() > 0 && (*it) == ' '){
-            skipWhiteSpace(it, in.end()); // skip any whitespace before arguments
             string label = ""; // this is variable is passed to instr_line, and can by reference to be changed if label instruction is found
             tokens.push_back({str, instr_line(str, it, in.end(), label), line, memLine, label});
             memLine += 4;
@@ -922,6 +946,12 @@ void Scanner::scanLine(string in){
         }
     }
     if(str.size() != 0){ // at the end a string should've been processed
+        if(str == "NOP"){
+            tokens.push_back({str, 0, line, memLine, ""});
+            memLine += 4;
+            line++;
+            return;
+        }
         errorMsg("Unexpected token '" + str + "'.");
         line++;
         return;

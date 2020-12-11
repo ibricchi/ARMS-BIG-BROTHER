@@ -153,8 +153,13 @@ div_mult_reg div_mult_reg_0(
     .lo(lo)
 );
 
+
+logic[31:0] unextend_out, extend_out;
+assign unextend_out = {16'h0000, instr[15:0]};
+assign extend_out = {{16{instr[15]}}, instr[15:0]};
+
 logic[31:0] alu_b;
-assign alu_b = (ALUSrc == 0) ? read_data2 : extend_out;
+assign alu_b = (ALUSrc == 0) ? read_data2 : unextend_out;
 
 //ALU Control
 logic[4:0] ALUCtrl;
@@ -179,9 +184,7 @@ alu alu_0(
 );
 
 // pc_calculated on branch
-logic[31:0] extend_out;
 logic[31:0] add_out;
-assign extend_out = {{16{instr[15]}}, instr[15:0]};
 assign add_out = pc_out + (extend_out << 2);
 
 logic and_result;

@@ -12,7 +12,7 @@ using namespace std;
 
 int main()
 {
-    const uint32_t memInstructionStartIdx = 0xBFC00000;
+    const uint32_t memInstructionStartIdx = 0xBFC00000 / 4; // MIPS supports byte addressing and reference simulator supports word addressing
 
     unordered_map<uint32_t, uint32_t> memory = readMemoryBinary(cin, memInstructionStartIdx);
 
@@ -70,10 +70,10 @@ unordered_map<uint32_t, uint32_t> readMemoryBinary(istream &src, const uint32_t 
         unsigned memLineData = stoul(line, nullptr, 16);
         assert(memLineData < 0xFFFFFFFF);
 
-        assert(currentMemAddress <= maxUint32t);
+        assert(currentMemAddress <= maxUint32t / 4); // MIPS supports byte addressing and reference simulator supports word addressing
         memory[currentMemAddress] = memLineData;
 
-        currentMemAddress += 4; // byte indexing
+        currentMemAddress++;
     }
 
     return memory;
@@ -90,7 +90,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
 
     while (pc != 0) // attempting to execute address 0 causes the CPU to halt
     {
-        assert(pc <= maxUint32t && pc > 0);
+        assert(pc <= maxUint32t / 4 && pc > 0); // MIPS supports byte addressing and reference simulator supports word addressing
 
         uint32_t instruction = memory[pc];
         uint32_t opcode = instruction >> 26; // opcode is 6 bits
@@ -109,7 +109,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t dReg, sReg, tReg;
                 tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
                 regs[dReg] = regs[sReg] + regs[tReg];
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b100100: // AND
@@ -117,7 +117,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t dReg, sReg, tReg;
                 tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
                 regs[dReg] = regs[sReg] & regs[tReg];
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b100101: // OR
@@ -125,7 +125,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t dReg, sReg, tReg;
                 tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
                 regs[dReg] = regs[sReg] | regs[tReg];
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b101010: // SLT
@@ -134,7 +134,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
                 // Using signed values
                 regs[dReg] = (static_cast<int32_t>(regs[sReg]) < static_cast<int32_t>(regs[tReg])) ? 1 : 0;
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b101011: // SLTU
@@ -142,7 +142,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t dReg, sReg, tReg;
                 tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
                 regs[dReg] = (regs[sReg] < regs[tReg]) ? 1 : 0;
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b100011: // SUBU
@@ -150,7 +150,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t dReg, sReg, tReg;
                 tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
                 regs[dReg] = regs[sReg] - regs[tReg];
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b100110: // XOR
@@ -158,7 +158,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t dReg, sReg, tReg;
                 tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
                 regs[dReg] = regs[sReg] ^ regs[tReg];
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b011010: // DIV
@@ -168,7 +168,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 // signed division
                 lo = static_cast<int32_t>(regs[sReg]) / static_cast<int32_t>(regs[tReg]); // quotient
                 hi = static_cast<int32_t>(regs[sReg]) % static_cast<int32_t>(regs[tReg]); // remainder
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b011011: // DIVU
@@ -177,7 +177,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 tie(ignore, sReg, tReg, ignore) = decodeArithmeticType(instruction);
                 lo = regs[sReg] / regs[tReg]; // quotient
                 hi = regs[sReg] % regs[tReg]; // remainder
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b011000: // MULT
@@ -186,7 +186,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 tie(ignore, sReg, tReg, ignore) = decodeArithmeticType(instruction);
                 // signed multiplication
                 lo = static_cast<int32_t>(regs[sReg]) * static_cast<int32_t>(regs[tReg]);
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b011001: // MULTU
@@ -194,7 +194,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t sReg, tReg;
                 tie(ignore, sReg, tReg, ignore) = decodeArithmeticType(instruction);
                 lo = regs[sReg] * regs[tReg];
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b000000: // SLL
@@ -202,7 +202,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t dReg, tReg, constant;
                 tie(dReg, ignore, tReg, constant) = decodeArithmeticType(instruction);
                 regs[dReg] = regs[tReg] << constant;
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b000011: // SRA
@@ -211,7 +211,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 tie(dReg, ignore, tReg, constant) = decodeArithmeticType(instruction);
                 // >> always shifts in zero for unsigned types
                 regs[dReg] = static_cast<int32_t>(regs[tReg]) >> constant;
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b000010: // SRL
@@ -219,7 +219,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t dReg, tReg, constant;
                 tie(dReg, ignore, tReg, constant) = decodeArithmeticType(instruction);
                 regs[dReg] = regs[tReg] >> constant;
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b000100: // SLLV
@@ -227,7 +227,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t dReg, sReg, tReg;
                 tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
                 regs[dReg] = regs[tReg] << regs[sReg];
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b000111: // SRAV
@@ -236,7 +236,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
                 // >> always shifts in zero for unsigned types
                 regs[dReg] = static_cast<int32_t>(regs[tReg]) >> regs[sReg];
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b000110: // SRLV
@@ -244,14 +244,15 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t dReg, sReg, tReg;
                 tie(dReg, sReg, tReg, ignore) = decodeArithmeticType(instruction);
                 regs[dReg] = regs[tReg] >> regs[sReg];
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b001000: // JR
             {
                 uint32_t sReg;
                 tie(ignore, sReg, ignore, ignore) = decodeArithmeticType(instruction);
-                pc = regs[sReg];
+                // MIPS supports byte addressing and reference simulator supports word addressing
+                pc = regs[sReg] / 4;
                 break;
             }
             case 0b010000: // MFHI
@@ -259,7 +260,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t dReg;
                 tie(dReg, ignore, ignore, ignore) = decodeArithmeticType(instruction);
                 regs[dReg] = hi;
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b010010: // MFLO
@@ -267,7 +268,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t dReg;
                 tie(dReg, ignore, ignore, ignore) = decodeArithmeticType(instruction);
                 regs[dReg] = lo;
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b010001: // MTHI
@@ -275,7 +276,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t sReg;
                 tie(ignore, sReg, ignore, ignore) = decodeArithmeticType(instruction);
                 hi = regs[sReg];
-                pc += 4;
+                pc++;
                 break;
             }
             case 0b010011: // MTLO
@@ -283,7 +284,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 uint32_t sReg;
                 tie(ignore, sReg, ignore, ignore) = decodeArithmeticType(instruction);
                 lo = regs[sReg];
-                pc += 4;
+                pc++;
                 break;
             }
             default:
@@ -300,7 +301,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             regs[tReg] = regs[sReg] + immediate;
-            pc += 4;
+            pc++;
             break;
         }
         case 0b001100: // ANDI
@@ -308,7 +309,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             regs[tReg] = regs[sReg] & immediate;
-            pc += 4;
+            pc++;
             break;
         }
         case 0b001101: // ORI
@@ -316,7 +317,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             regs[tReg] = regs[sReg] | immediate;
-            pc += 4;
+            pc++;
             break;
         }
         case 0b001010: // SLTI
@@ -325,7 +326,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // Using signed values
             regs[tReg] = (static_cast<int32_t>(regs[sReg]) < static_cast<int32_t>(immediate)) ? 1 : 0;
-            pc += 4;
+            pc++;
             break;
         }
         case 0b001011: // SLTIU
@@ -333,7 +334,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             regs[tReg] = (regs[sReg] < immediate) ? 1 : 0;
-            pc += 4;
+            pc++;
             break;
         }
         case 0b001110: // XORI
@@ -341,14 +342,14 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             regs[tReg] = regs[sReg] ^ immediate;
-            pc += 4;
+            pc++;
             break;
         }
         case 0b000100: // BEQ
         {
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
-            pc += 4;
+            pc++;
             if (regs[sReg] == regs[tReg])
             {
                 // Use signed immediates as relative branches could be negative
@@ -360,7 +361,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         {
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
-            pc += 4;
+            pc++;
             if (regs[sReg] != regs[tReg])
             {
                 // Use signed immediates as relative branches could be negative
@@ -372,7 +373,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         {
             uint32_t sReg, immediate;
             tie(ignore, sReg, immediate) = decodeImmediateType(instruction);
-            pc += 4;
+            pc++;
             if (regs[sReg] > 0)
             {
                 // Use signed immediates as relative branches could be negative
@@ -384,7 +385,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         {
             uint32_t sReg, immediate;
             tie(ignore, sReg, immediate) = decodeImmediateType(instruction);
-            pc += 4;
+            pc++;
             if (regs[sReg] <= 0)
             {
                 // Use signed immediates as relative branches could be negative
@@ -401,7 +402,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             {
             case 0b00000: // BLTZ
             {
-                pc += 4;
+                pc++;
                 if (regs[sReg] < 0)
                 {
                     // Use signed immediates as relative branches could be negative
@@ -411,7 +412,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             }
             case 0b00001: // BGEZ
             {
-                pc += 4;
+                pc++;
                 if (regs[sReg] >= 0)
                 {
                     // Use signed immediates as relative branches could be negative
@@ -421,7 +422,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             }
             case 0b10001: // BGEZAL
             {
-                pc += 4;
+                pc++;
                 regs[31] = pc;
                 if (regs[sReg] >= 0)
                 {
@@ -432,7 +433,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             }
             case 0b10000: // BLTZAL
             {
-                pc += 4;
+                pc++;
                 regs[31] = pc;
                 if (regs[sReg] < 0)
                 {
@@ -452,7 +453,6 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         }
         case 0b100000: // LB
         {
-            break;
         }
         case 0b100100: // LBU
         {
@@ -484,8 +484,9 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // word address must be divisble by 4
             assert((regs[sReg] + immediate) % 4 == 0);
-            regs[tReg] = memory[regs[sReg] + immediate];
-            pc += 4;
+            // reference simulator memory supports word rather than byte addressing
+            regs[tReg] = memory[(regs[sReg] + immediate) / 4];
+            pc++;
             break;
         }
         case 0b101000: // SB
@@ -502,23 +503,26 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // word address must be divisble by 4
             assert((regs[sReg] + immediate) % 4 == 0);
-            memory[regs[sReg] + immediate] = regs[tReg];
-            pc += 4;
+            // reference simulator memory supports word rather than byte addressing
+            memory[(regs[sReg] + immediate) / 4] = regs[tReg];
+            pc++;
             break;
         }
         case 0b000010: // J
         {
             uint32_t immediate;
             tie(ignore, ignore, immediate) = decodeImmediateType(instruction);
-            pc = immediate << 2;
+            // MIPS supports byte addressing and reference simulator supports word addressing
+            pc = (immediate << 2) / 4;
             break;
         }
-        case 0b000011: // JAR
+        case 0b000011: // JAL
         {
-            regs[31] = pc + 4;
+            regs[31] = pc + 1;
             uint32_t immediate;
             tie(ignore, ignore, immediate) = decodeImmediateType(instruction);
-            pc = immediate << 2;
+            // MIPS supports byte addressing and reference simulator supports word addressing
+            pc = (immediate << 2) / 4 + memInstructionStartIdx;
             break;
         }
         default:

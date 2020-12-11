@@ -482,6 +482,8 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         {
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            // word address must be divisble by 4
+            assert((regs[sReg] + immediate) % 4 == 0);
             regs[tReg] = memory[regs[sReg] + immediate];
             pc += 4;
             break;
@@ -498,6 +500,8 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         {
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            // word address must be divisble by 4
+            assert((regs[sReg] + immediate) % 4 == 0);
             memory[regs[sReg] + immediate] = regs[tReg];
             pc += 4;
             break;

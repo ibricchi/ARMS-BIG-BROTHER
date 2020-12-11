@@ -49,9 +49,10 @@ always_comb begin
         4'b0101: ALUCtrl = 5'b00001; //Bitwise OR
         4'b0110: ALUCtrl = 5'b01101; //Bitwise XOR
         4'b0111: ALUCtrl = 5'b00111; //SLT
-        4'b1000: ALUCtrl = 5'b01000; //bne
-        4'b1001: ALUCtrl = 5'b01001; //bgtz
-        4'b1010: ALUCtrl = 5'b01010; //blez
+
+        4'b1000: ALUCtrl = 5'b11000; //bne
+        4'b1001: ALUCtrl = 5'b11001; //bgtz
+        4'b1010: ALUCtrl = 5'b11010; //blez
         4'b1011: ALUCtrl = BranchCtrl; //BLTZ and OTHER_BRANCHZ instructions
         default: ALUCtrl = 0;
     endcase

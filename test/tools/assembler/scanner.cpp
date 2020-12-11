@@ -10,8 +10,8 @@ Token::Token(string _name, uint32_t _data, uint32_t _line, uint32_t _memLine, st
     name = _name;
     data = _data;
 
-    memLine = _memLine;
     label = _label;
+    memLine = _memLine;
 
     line = _line;
 }
@@ -76,7 +76,7 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
 
 void Scanner::reset(){
     line = 1;
-    memLine = 0;
+    memLine = 0xBFC00000;
     labels = vector<Token>();
     tokens = vector<Token>();
     error = false;

@@ -507,6 +507,10 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         }
         case 0b001111: // LUI
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            regs[tReg] = regs[sReg] + (immediate << 16);
+            pc++;
             break;
         }
         case 0b100010: // LWL

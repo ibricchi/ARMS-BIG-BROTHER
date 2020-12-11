@@ -453,6 +453,14 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         }
         case 0b100000: // LB
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            // reference simulator memory supports word rather than byte addressing
+            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
+            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            regs[tReg] = getByteFromWord(word, byteNr);
+            pc++;
+            break;
         }
         case 0b100100: // LBU
         {

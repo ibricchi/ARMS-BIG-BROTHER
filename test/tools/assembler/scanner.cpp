@@ -76,7 +76,7 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
 
 void Scanner::reset(){
     line = 1;
-    memLine = 0;
+    memLine = 0xBFC00000;
     labels = vector<Token>();
     tokens = vector<Token>();
     error = false;

@@ -289,7 +289,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             default:
             {
                 cerr << "Invalid function code for ARITHLOG instruction: " << func << endl;
-                assert(true);
+                exit(1);
                 break;
             }
             }
@@ -444,7 +444,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             default:
             {
                 cerr << "Invalid tReg for OTHER BRANCHZ instruction: " << tReg << endl;
-                assert(true);
+                exit(1);
                 break;
             }
             }
@@ -520,7 +520,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         default:
         {
             cerr << "Invalid opcode: " << opcode << endl;
-            assert(true);
+            exit(1);
             break;
         }
         }

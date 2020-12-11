@@ -325,7 +325,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // Using signed values
-            regs[tReg] = (static_cast<int32_t>(regs[sReg]) < static_cast<int32_t>(immediate)) ? 1 : 0;
+            regs[tReg] = (static_cast<int32_t>(regs[sReg]) < static_cast<int16_t>(immediate)) ? 1 : 0;
             pc++;
             break;
         }
@@ -353,7 +353,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             if (regs[sReg] == regs[tReg])
             {
                 // Use signed immediates as relative branches could be negative
-                pc += static_cast<int32_t>(immediate) << 2;
+                pc += (static_cast<int16_t>(immediate) << 2) / 4;
             }
             break;
         }
@@ -365,7 +365,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             if (regs[sReg] != regs[tReg])
             {
                 // Use signed immediates as relative branches could be negative
-                pc += static_cast<int32_t>(immediate) << 2;
+                pc += (static_cast<int16_t>(immediate) << 2) / 4;
             }
             break;
         }
@@ -377,7 +377,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             if (regs[sReg] > 0)
             {
                 // Use signed immediates as relative branches could be negative
-                pc += static_cast<int32_t>(immediate) << 2;
+                pc += (static_cast<int16_t>(immediate) << 2) / 4;
             }
             break;
         }
@@ -389,7 +389,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             if (regs[sReg] <= 0)
             {
                 // Use signed immediates as relative branches could be negative
-                pc += static_cast<int32_t>(immediate) << 2;
+                pc += (static_cast<int16_t>(immediate) << 2) / 4;
             }
             break;
         }
@@ -406,7 +406,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 if (regs[sReg] < 0)
                 {
                     // Use signed immediates as relative branches could be negative
-                    pc += static_cast<int32_t>(immediate) << 2;
+                    pc += (static_cast<int16_t>(immediate) << 2) / 4;
                 }
                 break;
             }
@@ -416,7 +416,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 if (regs[sReg] >= 0)
                 {
                     // Use signed immediates as relative branches could be negative
-                    pc += static_cast<int32_t>(immediate) << 2;
+                    pc += (static_cast<int16_t>(immediate) << 2) / 4;
                 }
                 break;
             }
@@ -427,7 +427,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 if (regs[sReg] >= 0)
                 {
                     // Use signed immediates as relative branches could be negative
-                    pc += static_cast<int32_t>(immediate) << 2;
+                    pc += (static_cast<int16_t>(immediate) << 2) / 4;
                 }
                 break;
             }
@@ -438,7 +438,7 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
                 if (regs[sReg] < 0)
                 {
                     // Use signed immediates as relative branches could be negative
-                    pc += static_cast<int32_t>(immediate) << 2;
+                    pc += (static_cast<int16_t>(immediate) << 2) / 4;
                 }
                 break;
             }

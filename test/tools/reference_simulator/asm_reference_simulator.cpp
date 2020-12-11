@@ -475,10 +475,34 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         }
         case 0b100001: // LH
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            // reference simulator memory supports word rather than byte addressing
+            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
+            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            assert(byteNr == 0 || byteNr == 2); // needs to be half-word alligned
+            uint32_t lowerByte = getByteFromWord(word, byteNr);
+            uint32_t higherByte = getByteFromWordSigned(word, byteNr + 1);
+            // combine lowerByte and higherByte into half-word
+            regs[tReg] = higherByte << 8;
+            regs[tReg] |= lowerByte;
+            pc++;
             break;
         }
         case 0b100101: // LHU
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            // reference simulator memory supports word rather than byte addressing
+            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
+            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            assert(byteNr == 0 || byteNr == 2); // needs to be half-word alligned
+            uint32_t lowerByte = getByteFromWord(word, byteNr);
+            uint32_t higherByte = getByteFromWord(word, byteNr + 1);
+            // combine lowerByte and higherByte into half-word
+            regs[tReg] = higherByte << 8;
+            regs[tReg] |= lowerByte;
+            pc++;
             break;
         }
         case 0b001111: // LUI

@@ -39,10 +39,10 @@ module control_unit(
     output logic      hitoreg,
     output logic      lotoreg,
 
-    //for the Return Address Register (linking instruction)
-    output logic      link,
-    
-    output logic      loadimmed    //an extra signal for LUI
+    output logic      link,         //for the Return Address Register (linking instruction)
+    output logic      loadimmed,    //an extra signal for LUI
+
+    output logic[2:0] ExtendOp      //for the Signextending 8bits/16bits word
 
 );
 
@@ -97,6 +97,7 @@ always_comb begin
         lotoreg    = 0;
         link       = 0;
         loadimmed  = 0;
+        ExtendOp   = 3'b000;
     end
     else if(decode) begin // in decode store instruction
         ALUOp[3:0] = 4'b0000;
@@ -392,18 +393,96 @@ always_comb begin
                 loadimmed  = 0;
             end
 
+    //100 for 16bits unsigned //101 for 16bits signed    
+    //110 for 8bits   unished //111 for 8 bits signed
             // LOADSTORE
-            6'b100000: begin // LB !TODO
-            
+            6'b100000: begin // LB Load the LS byte in to dt
+                ALUOp[3:0] = 4'b0000; 
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 1 & (exec1);
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = 1 & exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
+                link       = 0;
+                loadimmed  = 0;
+                ExtendOp   = 3'b111;
             end
             6'b100100: begin // LBU !TODO
-
+                ALUOp[3:0] = 4'b0000; 
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 1 & (exec1);
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = 1 & exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
+                link       = 0;
+                loadimmed  = 0;
+                ExtendOp   = 3'b110;
             end
             6'b100001: begin // LH !TODO
-                
+                ALUOp[3:0] = 4'b0000; 
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 1 & (exec1);
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = 1 & exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
+                link       = 0;
+                loadimmed  = 0;
+                ExtendOp   = 3'b101;
             end
             6'b100101: begin // LHU !TODO
-            
+                ALUOp[3:0] = 4'b0000; 
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 1 & (exec1);
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = 1 & exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
+                link       = 0;
+                loadimmed  = 0;
+                ExtendOp   = 3'b100;
             end
             6'b100011: begin // LW
                 ALUOp[3:0] = 4'b0000; 

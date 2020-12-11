@@ -28,7 +28,7 @@ int main(){
             cerr << "Error: [Line " << label.line << "] Label '" << label.name << "' has already been assigned." << endl;
             continue;
         }
-        labels.emplace(label.name, label.line);
+        labels.emplace(label.name, label.memLine);
     }
     // fix instructions that used labels
     for(auto it = scanner.getTokensAddr()->begin(); it != scanner.getTokensAddr()->end(); it++){
@@ -54,15 +54,16 @@ int main(){
                     }
                 }
                 else{
-                    uint32_t jumpDiff = (memLine - (it->memLine + 4)) >> 2; // adjust difference to be by instruction and not by byte
+                    int32_t jumpDiff = (int32_t)(memLine - (it->memLine + 4)) >> 2; // adjust difference to be by instruction and not by byte
                     uint16_t checkLineSize = jumpDiff;
-                    uint32_t checkLineSizeSignExtended = jumpDiff | (0xffff0000 * jumpDiff>>15 + 0xffff * !jumpDiff>>1);
+                    uint32_t checkLineSizeSignExtended = checkLineSize | (0xffff0000 & (-(checkLineSize>>15)));
+                    // cout << hex << (checkLineSize>>15) << " " << checkLineSize << " " << checkLineSizeSignExtended << " " << jumpDiff << endl;
                     if(checkLineSizeSignExtended != jumpDiff){  // check if jump firs in 16 bits
                         scanError = true;
                         cerr << "Error: [Line " << it->line << "] Label '" << it->label << "' is too far away from current instructions, jump is too large. Max jump size stored in 16 bits, calculated difference of: 0x" << hex << jumpDiff << "." << endl;
                     }
                     else{
-                        it->data |= memLine;
+                        it->data |= checkLineSize;
                     }
                 }
             }

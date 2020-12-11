@@ -24,28 +24,28 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " ALU: ", ALU_out);
+    $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " PC_IN: ", add_out - 3217031168, " Zero: ", zero, " Branch: ", branch);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
             active <= 1;
-            // $display("Entering FETCH STATE: ");
+            $display("Entering FETCH STATE: ");
         end
         1: begin // FETCH
             state <= 2;
-            // $display("Entering DECO STATE: ");
+            $display("Entering DECO STATE: ");
         end
         2: begin // DECODE
             state <= 3;
-            // $display("Entering EXEC1 STATE: ");
+            $display("Entering EXEC1 STATE: ");
         end
         3: begin // EXEC1
             state <= 4;
-            // $display("Entering EXEC2 STATE: ");
+            $display("Entering EXEC2 STATE: ");
         end
         4: begin // EXEC2
             state <= 1;
-            // $display("Entering FETCH STATE: ");
+            $display("Entering FETCH STATE: ");
         end
     endcase
 end
@@ -151,15 +151,8 @@ div_mult_reg div_mult_reg_0(
     .lo(lo)
 );
 
-logic[31:0] extend_out;
-assign extend_out = {16'h0000, instr[15:0]};
-
 logic[31:0] alu_b;
 assign alu_b = (ALUSrc == 0) ? read_data2 : extend_out;
-
-//shift left 2
-logic[31:0] shift_out;
-assign shift_out = extend_out << 2;
 
 //ALU Control
 logic[4:0] ALUCtrl;
@@ -183,14 +176,11 @@ alu alu_0(
     .zero(zero)
 );
 
-//Add ALU
+// pc_calculated on branch
+logic[31:0] extend_out;
 logic[31:0] add_out;
-
-add_alu add_alu_0(
-    .pc_out(pc_out),
-    .shift_out(shift_out),
-    .out(add_out)
-);
+assign extend_out = {{16{instr[15]}}, instr[15:0]};
+assign add_out = pc_out + (extend_out << 2);
 
 logic and_result;
 assign and_result = branch && zero;
@@ -198,7 +188,7 @@ assign and_result = branch && zero;
 //MUX4 location
 assign pc_in = jump ?
     (regtojump ? read_data1 : (instr[25:0] << 2)) :
-    (and_result ? add_out : (pc_out + 4));
+    ((and_result ? add_out : pc_out) + 4);
 
 //from data memory
 assign address = pctoadd?pc_out:ALU_out;

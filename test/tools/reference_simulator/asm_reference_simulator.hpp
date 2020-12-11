@@ -28,4 +28,12 @@ tuple<uint32_t, uint32_t, uint32_t, uint32_t> decodeArithmeticType(uint32_t inst
 // Out[2] = immediate value (i)
 tuple<uint32_t, uint32_t, uint32_t> decodeImmediateType(uint32_t instruction);
 
+// Extract byte from 4 byte word
+// byteNr <= 3
+uint32_t getByteFromWord(uint32_t word, uint32_t byteNr);
+
+// Replace one byte inside a word and return the modified word
+// byteNr <= 3
+uint32_t replaceByteInWord(uint32_t word, uint32_t byte, uint32_t byteNr);
+
 #endif

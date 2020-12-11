@@ -555,3 +555,34 @@ tuple<uint32_t, uint32_t, uint32_t> decodeImmediateType(uint32_t instruction)
 
     return {tReg, sReg, immediate};
 }
+
+uint32_t getByteFromWord(uint32_t word, uint32_t byteNr)
+{
+    assert(byteNr < 4);
+
+    // shift desired byte all the way to the right
+    uint32_t byte = word >> (byteNr * 8);
+    // set everything to zero apart from desired byte
+    byte &= 0xFF;
+
+    return byte;
+}
+
+uint32_t replaceByteInWord(uint32_t word, uint32_t byte, uint32_t byteNr)
+{
+    assert(byteNr < 4);
+    assert(byte < 256);
+
+    // construct byte filter
+    uint32_t filter = 0xFF << (byteNr * 8);
+    filter = ~filter;
+
+    // shift byte to correct position
+    byte <<= (byteNr * 8);
+
+    // insert byte into word
+    word &= filter;
+    word |= byte;
+
+    return word;
+}

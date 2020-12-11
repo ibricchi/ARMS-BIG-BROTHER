@@ -21,6 +21,23 @@ void testGetByteFromWord()
     assert(byte3 == 0x12);
 }
 
+void testGetByteFromWordSigned()
+{
+    uint32_t word = 0x12F45698;
+
+    uint32_t byte0 = getByteFromWordSigned(word, 0);
+    assert(byte0 == 0xFFFFFF98);
+
+    uint32_t byte1 = getByteFromWordSigned(word, 1);
+    assert(byte1 == 0x56);
+
+    uint32_t byte2 = getByteFromWordSigned(word, 2);
+    assert(byte2 == 0xFFFFFFF4);
+
+    uint32_t byte3 = getByteFromWordSigned(word, 3);
+    assert(byte3 == 0x12);
+}
+
 void testReplaceByteInWord()
 {
     uint32_t byte = 0x36;
@@ -45,6 +62,9 @@ int main()
 
     testGetByteFromWord();
     cout << "getByteFromWord passed" << endl;
+
+    testGetByteFromWordSigned();
+    cout << "getByteFromWordSigned passed" << endl;
 
     testReplaceByteInWord();
     cout << "replaceByteInWord passed" << endl;

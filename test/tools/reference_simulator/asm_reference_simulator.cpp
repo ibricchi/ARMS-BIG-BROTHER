@@ -458,12 +458,19 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             // reference simulator memory supports word rather than byte addressing
             uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
             uint32_t byteNr = (regs[sReg] + immediate) % 4;
-            regs[tReg] = getByteFromWord(word, byteNr);
+            regs[tReg] = getByteFromWordSigned(word, byteNr);
             pc++;
             break;
         }
         case 0b100100: // LBU
         {
+            uint32_t tReg, sReg, immediate;
+            tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            // reference simulator memory supports word rather than byte addressing
+            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
+            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            regs[tReg] = getByteFromWord(word, byteNr);
+            pc++;
             break;
         }
         case 0b100001: // LH
@@ -572,6 +579,19 @@ uint32_t getByteFromWord(uint32_t word, uint32_t byteNr)
     uint32_t byte = word >> (byteNr * 8);
     // set everything to zero apart from desired byte
     byte &= 0xFF;
+
+    return byte;
+}
+
+uint32_t getByteFromWordSigned(uint32_t word, uint32_t byteNr)
+{
+    uint32_t byte = getByteFromWord(word, byteNr);
+
+    // check if need to sign extend
+    if (byte & 0x80)
+    {
+        byte |= 0xFFFFFF00;
+    }
 
     return byte;
 }

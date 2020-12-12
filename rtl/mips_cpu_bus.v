@@ -192,7 +192,7 @@ assign and_result = branch && zero;
 
 //MUX4 location
 assign pc_in = jump ?
-    (regtojump ? read_data1 : (instr[25:0] << 2)) :
+    (regtojump ? read_data1 : {pc_out[31:28],instr[25:0]<<2}) :
     ((and_result ? add_out : pc_out) + 4);
 
 //from data memory

@@ -44,7 +44,7 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"LBU",     0b1100100}, // LoadStore
     {"LH",      0b1100001}, // LoadStore
     {"LHU",     0b1100101}, // LoadStore
-    {"LUI",     0b011111}, // LoadI
+    {"LUI",     0b001111}, // LoadI
     {"LW",      0b1100011}, // LoadStore
     {"LWL",     0b1100010}, // LoadStore
     {"LWR",     0b1100110}, // LoadStore
@@ -723,7 +723,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         break;
     }
     // LoadI
-    case 0b011111:{ // LUI
+    case 0b001111:{ // LUI
         uint8_t rt = read_reg(it, end, true);
         if(error) return 0;
         if(it == end){

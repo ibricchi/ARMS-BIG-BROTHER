@@ -228,11 +228,47 @@ always_comb begin
                 link       = 0;
                 loadimmed  = 0;
             end
-            6'b001101: begin // SLTI !TODO
-                
+            6'b001010: begin // SLTI !TODO
+                ALUOp[3:0] = 4'b0111;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
+                link       = 0;
+                loadimmed  = 0;
             end
-            6'b001010: begin // SLTIU !TODO
-                
+            6'b001011: begin // SLTIU !TODO
+                ALUOp[3:0] = 4'b1100;
+                ALUSrc     = 1;
+                jump       = 0;
+                branch     = 0;
+                memread    = 0;
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
+                link       = 0;
+                loadimmed  = 0;
             end
             6'b001110: begin // XORI !TODO: not yet tested
                 ALUOp[3:0] = 4'b0110;

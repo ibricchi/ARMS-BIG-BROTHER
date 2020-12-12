@@ -48,7 +48,8 @@ always_comb begin
         4'b0100: ALUCtrl = 5'b00000; //Bitwise AND
         4'b0101: ALUCtrl = 5'b00001; //Bitwise OR
         4'b0110: ALUCtrl = 5'b01101; //Bitwise XOR
-        4'b0111: ALUCtrl = 5'b00111; //SLT
+        4'b0111: ALUCtrl = 5'b01000; //SLT
+        4'b1100: ALUCtrl = 5'b00111; //SLTU (It's not in order I know but we sorta ran out of spots for this)
 
         4'b1000: ALUCtrl = 5'b11000; //bne
         4'b1001: ALUCtrl = 5'b11001; //bgtz

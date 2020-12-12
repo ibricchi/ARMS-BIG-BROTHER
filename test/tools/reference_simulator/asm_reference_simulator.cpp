@@ -81,12 +81,19 @@ unordered_map<uint32_t, uint32_t> readMemoryBinary(istream &src, const uint32_t 
 
 uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t memInstructionStartIdx)
 {
-    const uint32_t maxUint32t = 0xFFFFFFFF;
-
     uint32_t pc = memInstructionStartIdx;
     array<uint32_t, 32> regs{};
     uint32_t lo{};
     uint32_t hi{};
+
+    simulateMIPSHelper(memory, pc, regs, lo, hi, memInstructionStartIdx);
+
+    return regs[2]; // $v0 final value (register_v0 MIPS output)
+}
+
+void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, array<uint32_t, 32> &regs, uint32_t &lo, uint32_t &hi, const uint32_t memInstructionStartIdx, bool isDelaySlot)
+{
+    const uint32_t maxUint32t = 0xFFFFFFFF;
 
     while (pc != 0) // attempting to execute address 0 causes the CPU to halt
     {
@@ -350,10 +357,15 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             pc++;
+            simulateMIPSHelper(memory, pc, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
             if (regs[sReg] == regs[tReg])
             {
                 // Use signed immediates as relative branches could be negative
                 pc += (static_cast<int16_t>(immediate) << 2) / 4;
+            }
+            else
+            {
+                pc++; // already executed branch delay slot instruction
             }
             break;
         }
@@ -362,10 +374,15 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             pc++;
+            simulateMIPSHelper(memory, pc, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
             if (regs[sReg] != regs[tReg])
             {
                 // Use signed immediates as relative branches could be negative
                 pc += (static_cast<int16_t>(immediate) << 2) / 4;
+            }
+            else
+            {
+                pc++; // already executed branch delay slot instruction
             }
             break;
         }
@@ -374,10 +391,15 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             uint32_t sReg, immediate;
             tie(ignore, sReg, immediate) = decodeImmediateType(instruction);
             pc++;
+            simulateMIPSHelper(memory, pc, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
             if (regs[sReg] > 0)
             {
                 // Use signed immediates as relative branches could be negative
                 pc += (static_cast<int16_t>(immediate) << 2) / 4;
+            }
+            else
+            {
+                pc++; // already executed branch delay slot instruction
             }
             break;
         }
@@ -386,10 +408,15 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             uint32_t sReg, immediate;
             tie(ignore, sReg, immediate) = decodeImmediateType(instruction);
             pc++;
+            simulateMIPSHelper(memory, pc, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
             if (regs[sReg] <= 0)
             {
                 // Use signed immediates as relative branches could be negative
                 pc += (static_cast<int16_t>(immediate) << 2) / 4;
+            }
+            else
+            {
+                pc++; // already executed branch delay slot instruction
             }
             break;
         }
@@ -397,48 +424,65 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
         {
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
+            pc++;
+            simulateMIPSHelper(memory, pc, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
 
             switch (tReg)
             {
             case 0b00000: // BLTZ
             {
-                pc++;
                 if (regs[sReg] < 0)
                 {
                     // Use signed immediates as relative branches could be negative
                     pc += (static_cast<int16_t>(immediate) << 2) / 4;
+                }
+                else
+                {
+                    pc++; // already executed branch delay slot instruction
                 }
                 break;
             }
             case 0b00001: // BGEZ
             {
-                pc++;
                 if (regs[sReg] >= 0)
                 {
                     // Use signed immediates as relative branches could be negative
                     pc += (static_cast<int16_t>(immediate) << 2) / 4;
+                }
+                else
+                {
+                    pc++; // already executed branch delay slot instruction
                 }
                 break;
             }
             case 0b10001: // BGEZAL
             {
-                pc++;
-                regs[31] = pc;
+
                 if (regs[sReg] >= 0)
                 {
                     // Use signed immediates as relative branches could be negative
                     pc += (static_cast<int16_t>(immediate) << 2) / 4;
+                    // return address is the instruction after the branch delay slot
+                    regs[31] = pc + 1;
+                }
+                else
+                {
+                    pc++; // already executed branch delay slot instruction
                 }
                 break;
             }
             case 0b10000: // BLTZAL
             {
-                pc++;
-                regs[31] = pc;
                 if (regs[sReg] < 0)
                 {
                     // Use signed immediates as relative branches could be negative
                     pc += (static_cast<int16_t>(immediate) << 2) / 4;
+                    // return address is the instruction after the branch delay slot
+                    regs[31] = pc + 1;
+                }
+                else
+                {
+                    pc++; // already executed branch delay slot instruction
                 }
                 break;
             }
@@ -622,9 +666,12 @@ uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t 
             break;
         }
         }
-    }
 
-    return regs[2]; // $v0 final value (register_v0 MIPS output)
+        if (isDelaySlot)
+        {
+            return;
+        }
+    }
 }
 
 tuple<uint32_t, uint32_t, uint32_t, uint32_t> decodeArithmeticType(uint32_t instruction)

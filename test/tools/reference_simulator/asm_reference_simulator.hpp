@@ -17,6 +17,8 @@ unordered_map<uint32_t, uint32_t> readMemoryBinary(istream &src, const uint32_t 
 // Output: Returns the final value inside register $v0 (register_v0).
 uint32_t simulateMIPS(unordered_map<uint32_t, uint32_t> &memory, const uint32_t memInstructionStartIdx);
 
+void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, array<uint32_t, 32> &regs, uint32_t &lo, uint32_t &hi, const uint32_t memInstructionStartIdx, bool isDelaySlot = false);
+
 // Out[0] = d register address
 // Out[1] = s register address
 // Out[2] = t register address

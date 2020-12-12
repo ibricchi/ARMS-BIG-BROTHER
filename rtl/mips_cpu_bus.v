@@ -24,28 +24,28 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-    $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " PC_IN: ", add_out - 3217031168, " Zero: ", zero, " Branch: ", branch);
+    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " PC_IN: ", add_out - 3217031168, " Zero: ", zero, " Branch: ", branch);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
             active <= 1;
-            $display("Entering FETCH STATE: ");
+            // $display("Entering FETCH STATE: ");
         end
         1: begin // FETCH
             state <= 2;
-            $display("Entering DECO STATE: ");
+            // $display("Entering DECO STATE: ");
         end
         2: begin // DECODE
             state <= 3;
-            $display("Entering EXEC1 STATE: ");
+            // $display("Entering EXEC1 STATE: ");
         end
         3: begin // EXEC1
             state <= 4;
-            $display("Entering EXEC2 STATE: ");
+            // $display("Entering EXEC2 STATE: ");
         end
         4: begin // EXEC2
             state <= 1;
-            $display("Entering FETCH STATE: ");
+            // $display("Entering FETCH STATE: ");
         end
     endcase
 end
@@ -74,6 +74,7 @@ pc pc_0(
 //control unit (not updated yet)
 logic[3:0] ALUOp;
 logic[1:0] div_mult_op;
+logic[2:0] ExtendOp;
 logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, hitoreg, lotoreg, link, loadimmed;
 
 control_unit control_0(
@@ -102,8 +103,9 @@ control_unit control_0(
     .hitoreg(hitoreg),
     .lotoreg(lotoreg),
     .link(link),
-    .loadimmed(loadimmed)
-
+    .loadimmed(loadimmed),
+    
+    .ExtendOp(ExtendOp)
 );
 
 // instr register
@@ -151,8 +153,13 @@ div_mult_reg div_mult_reg_0(
     .lo(lo)
 );
 
+
+logic[31:0] unextend_out, extend_out;
+assign unextend_out = {16'h0000, instr[15:0]};
+assign extend_out = {{16{instr[15]}}, instr[15:0]};
+
 logic[31:0] alu_b;
-assign alu_b = (ALUSrc == 0) ? read_data2 : extend_out;
+assign alu_b = (ALUSrc == 0) ? read_data2 : unextend_out;
 
 //ALU Control
 logic[4:0] ALUCtrl;
@@ -177,9 +184,7 @@ alu alu_0(
 );
 
 // pc_calculated on branch
-logic[31:0] extend_out;
 logic[31:0] add_out;
-assign extend_out = {{16{instr[15]}}, instr[15:0]};
 assign add_out = pc_out + (extend_out << 2);
 
 logic and_result;
@@ -200,6 +205,13 @@ assign writedata = read_data2;
 logic[31:0] loadresult;
 assign loadresult = {instr[15:0],16'h0000};
 
+//I really hate this way of implementing this function, but selection in wire (like instr[5:2]) in not allow in always_comb
+logic[31:0] ExtendRes1,ExtendRes2,ExtendRes3,ExtendRes0;
+assign ExtendRes3 = {{25{readdata[7]}}, readdata[6:0] };    //LB
+assign ExtendRes2 = {24'h000000,readdata[7:0]};          //LBU
+assign ExtendRes1 = { {17{readdata[15]}}, readdata[14:0] }; //LH
+assign ExtendRes0 = {16'h0000,readdata[15:0]};           //LHUs
+
 always_comb begin
     if(memtoreg) begin
         write_data = readdata;
@@ -216,6 +228,15 @@ always_comb begin
     else if(lotoreg) begin
         write_data = lo;
     end
+    else if(ExtendOp != 0)begin 
+        write_data = ExtendRes1;
+        case(ExtendOp)
+            3'b100:write_data = ExtendRes0;
+            3'b101:write_data = ExtendRes1;
+            3'b110:write_data = ExtendRes2;
+            3'b111:write_data = ExtendRes3;
+        endcase 
+    end 
     else begin
         write_data = ALU_out;
     end

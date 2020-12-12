@@ -32,9 +32,9 @@ end
 always_comb begin 
     case(BranchzFunc)
         5'b00001: BranchCtrl = 5'b11011; //BGEZ
-        // 5'b10001: BranchCtrl = 4'b; //BGEZAL TODO
+        5'b10001: BranchCtrl = 5'b11011; //BGEZAL 
         5'b00000: BranchCtrl = 5'b11111; //BLTZ
-        // 5'b10000: BranchCtrl = 4'b; //BLTZAL TODO     
+        5'b10000: BranchCtrl = 5'b11111; //BLTZAL     
         default: BranchCtrl = 5'b00000;
     endcase
 end
@@ -48,7 +48,9 @@ always_comb begin
         4'b0100: ALUCtrl = 5'b00000; //Bitwise AND
         4'b0101: ALUCtrl = 5'b00001; //Bitwise OR
         4'b0110: ALUCtrl = 5'b01101; //Bitwise XOR
-        4'b0111: ALUCtrl = 5'b00111; //SLT
+        4'b0111: ALUCtrl = 5'b01000; //SLT
+        4'b1100: ALUCtrl = 5'b00111; //SLTU (It's not in order I know but we sorta ran out of spots for this)
+
         4'b1000: ALUCtrl = 5'b11000; //bne
         4'b1001: ALUCtrl = 5'b11001; //bgtz
         4'b1010: ALUCtrl = 5'b11010; //blez

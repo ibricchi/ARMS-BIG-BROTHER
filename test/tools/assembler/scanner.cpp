@@ -44,7 +44,7 @@ const unordered_map<string, uint8_t> Scanner::op_map = {
     {"LBU",     0b1100100}, // LoadStore
     {"LH",      0b1100001}, // LoadStore
     {"LHU",     0b1100101}, // LoadStore
-    {"LUI",     0b011111}, // LoadI
+    {"LUI",     0b001111}, // LoadI
     {"LW",      0b1100011}, // LoadStore
     {"LWL",     0b1100010}, // LoadStore
     {"LWR",     0b1100110}, // LoadStore

@@ -27,6 +27,19 @@ initial begin
         $display("RAM : INIT : Loading RAM contents from %s", RAM_INIT_FILE);
         $readmemh(RAM_INIT_FILE, memory);
     end
+    memory[0] = 32'h24210010;//ADDIU R1 R1 16
+    memory[1] = 32'h2442FFFF;//ADDIU R2 R2 FFFF
+    memory[2] = 32'h2442FFFF;//ADDIU R2 R2 FFFF
+    memory[3] = 32'hAC220000;//SW MEM[R1] <-R2
+    memory[4] = 32'h244200FF;//NOTHING 
+    memory[5] = 32'h8C230000;//LW  R2 <- MEM[R1]   FFFFFFFE Expected
+    memory[6] = 32'h94240000;//LHU R4 <- MEM[R1]   0000FFFE EXPECTED
+    memory[7] = 32'h84250002;//LH  R5 <- MEM[R1]+2 FFFFFFFF EXPECTED
+    memory[8] = 32'h80260001;//LB  R6 <- MEM[R1]+1 FFFFFFFF EXPECTED
+    memory[9] = 32'h90270000;//LBU R7 <- MEM[R1]   000000FE EXPECTED
+    memory[10] = 32'h24210001;
+    memory[11] = 32'h24210001;
+    
 end
 
 integer waitcycle;
@@ -65,7 +78,8 @@ always_ff @(posedge clk) begin
             else if(write) begin // set write data if requested
                 memory[address] <= writedata;
             end
-            waitcycle <= $urandom_range(0,5); // reset reandom wait time (this can be set to a constant, random can be useful for testing)
+            // waitcycle <= $urandom_range(0,5); // reset reandom wait time (this can be set to a constant, random can be useful for testing)
+            waitcycle = 0;
             waitrequest <= 0; // reset wait request
         end
     end

@@ -204,10 +204,18 @@ assign loadresult = {instr[15:0],16'h0000};
 
 //I really hate this way of implementing this function, but selection in wire (like instr[5:2]) in not allow in always_comb
 logic[31:0] ExtendRes1,ExtendRes2,ExtendRes3,ExtendRes0;
-assign ExtendRes3 = {{25{readdata[7]}}, readdata[6:0] };    //LB
-assign ExtendRes2 = {24'h000000,readdata[7:0]};          //LBU
-assign ExtendRes1 = { {17{readdata[15]}}, readdata[14:0] }; //LH
-assign ExtendRes0 = {16'h0000,readdata[15:0]};           //LHUs
+logic[15:0] HalfRes;
+
+assign HalfRes = (address[1]==1)?readdata[31:16]:readdata[15: 0];
+
+logic[7:0] byteRes;
+
+assign byteRes = (address[0]==1)?HalfRes[15:8]:HalfRes[7:0];
+
+assign ExtendRes3 = {{25{byteRes[7]}}, byteRes[6:0] };    //LB
+assign ExtendRes2 = {24'h000000,byteRes[7:0]};          //LBU
+assign ExtendRes1 = { {17{HalfRes[15]}}, HalfRes[14:0] }; //LH
+assign ExtendRes0 = {16'h0000,HalfRes[15:0]};           //LHUs
 
 always_comb begin
     if(memtoreg) begin

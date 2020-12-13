@@ -54,5 +54,4 @@ module mips_cpu_bus_tb;
 
         $finish;
     end
-
 endmodule

@@ -23,7 +23,6 @@ module mips_cpu_bus_tb;
 
     // generate clock
     initial begin
-        
         clk = 0;
 
         repeat(TIMEOUT_CYCLES) begin

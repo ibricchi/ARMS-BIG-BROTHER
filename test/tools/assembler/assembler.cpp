@@ -43,15 +43,8 @@ int main(){
                 uint32_t op = it->data;
                 op >>= 26;
                 if(op == 0b000010 || op == 0b000011){ // if jump pattern
-                    uint32_t checkLineSize = memLine << 6;
-                    checkLineSize >>= 6;
-                    if(checkLineSize != memLine){ // check that destination can be fitted into 28 bits
-                        scanError = true;
-                        cerr << "Error: [Line " << it->line << "] Label '" << it->label << "' points to address too large to store in J or JAL instruction. Max size is 26 bits, label points to: 0x" << hex << memLine << "." << endl;
-                    }
-                    else{
-                        it->data |= memLine;
-                    }
+                    uint32_t compareMem = memLine >> 2;
+                    it->data |= compareMem;
                 }
                 else{
                     int32_t jumpDiff = (int32_t)(memLine - (it->memLine + 4)) >> 2; // adjust difference to be by instruction and not by byte

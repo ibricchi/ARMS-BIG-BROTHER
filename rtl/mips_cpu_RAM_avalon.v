@@ -65,8 +65,7 @@ always_ff @(posedge clk) begin
             else if(write) begin // set write data if requested
                 memory[address] <= writedata;
             end
-            // waitcycle <= $urandom_range(0,5); // reset reandom wait time (this can be set to a constant, random can be useful for testing)
-            waitcycle = 0;
+            waitcycle <= $urandom_range(0,5); // reset reandom wait time (this can be set to a constant, random can be useful for testing)
             waitrequest <= 0; // reset wait request
         end
     end

@@ -846,7 +846,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         }
         out |= 0b000001;
         out = out << 5 | rs;
-        out = out << 5 | (op | 0b11111);
+        out = out << 5 | (op & 0b11111);
         out <<= 16;
         break;
     }

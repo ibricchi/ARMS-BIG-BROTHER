@@ -53,7 +53,7 @@ unordered_map<uint32_t, uint32_t> readMemoryBinary(istream &src, const uint32_t 
         // A line should be exactly 4 bytes (8 hex symbols)
         if (line.size() != 8)
         {
-            cerr << "Line number " << currentMemAddress - memInstructionStartIdx << " : expected exactly eight chars, got '" << line << '"' << endl;
+            cerr << "Reference simulator: Line number " << currentMemAddress - memInstructionStartIdx << " : expected exactly eight chars, got '" << line << '"' << endl;
             exit(1);
         }
 
@@ -61,7 +61,7 @@ unordered_map<uint32_t, uint32_t> readMemoryBinary(istream &src, const uint32_t 
         {
             if (!isxdigit(line[i]))
             {
-                cerr << "Line number " << currentMemAddress - memInstructionStartIdx << " : expected only hexadecimal digits, got '" << line[i] << '"' << endl;
+                cerr << "Reference simulator: Line number " << currentMemAddress - memInstructionStartIdx << " : expected only hexadecimal digits, got '" << line[i] << '"' << endl;
                 exit(1);
             }
         }
@@ -258,6 +258,7 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             {
                 uint32_t sReg;
                 tie(ignore, sReg, ignore, ignore) = decodeArithmeticType(instruction);
+                simulateMIPSHelper(memory, pc + 1, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
                 // MIPS supports byte addressing and reference simulator supports word addressing
                 pc = regs[sReg] / 4;
                 break;
@@ -296,7 +297,7 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             }
             default:
             {
-                cerr << "Invalid function code for ARITHLOG instruction: " << func << endl;
+                cerr << "Reference simulator: Invalid function code for ARITHLOG instruction: " << func << endl;
                 exit(1);
                 break;
             }
@@ -392,7 +393,7 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             tie(ignore, sReg, immediate) = decodeImmediateType(instruction);
             pc++;
             simulateMIPSHelper(memory, pc, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
-            if (regs[sReg] > 0)
+            if (static_cast<int16_t>(regs[sReg]) > 0)
             {
                 // Use signed immediates as relative branches could be negative
                 pc += (static_cast<int16_t>(immediate) << 2) / 4;
@@ -409,7 +410,7 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             tie(ignore, sReg, immediate) = decodeImmediateType(instruction);
             pc++;
             simulateMIPSHelper(memory, pc, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
-            if (regs[sReg] <= 0)
+            if (static_cast<int16_t>(regs[sReg]) <= 0)
             {
                 // Use signed immediates as relative branches could be negative
                 pc += (static_cast<int16_t>(immediate) << 2) / 4;
@@ -431,7 +432,7 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             {
             case 0b00000: // BLTZ
             {
-                if (regs[sReg] < 0)
+                if (static_cast<int16_t>(regs[sReg]) < 0)
                 {
                     // Use signed immediates as relative branches could be negative
                     pc += (static_cast<int16_t>(immediate) << 2) / 4;
@@ -444,7 +445,7 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             }
             case 0b00001: // BGEZ
             {
-                if (regs[sReg] >= 0)
+                if (static_cast<int16_t>(regs[sReg]) >= 0)
                 {
                     // Use signed immediates as relative branches could be negative
                     pc += (static_cast<int16_t>(immediate) << 2) / 4;
@@ -458,12 +459,12 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             case 0b10001: // BGEZAL
             {
 
-                if (regs[sReg] >= 0)
+                if (static_cast<int16_t>(regs[sReg]) >= 0)
                 {
                     // Use signed immediates as relative branches could be negative
                     pc += (static_cast<int16_t>(immediate) << 2) / 4;
                     // return address is the instruction after the branch delay slot
-                    regs[31] = pc + 1;
+                    regs[31] = (pc + 1) * 4; // address after branch delay slot (MIPS byte address rather than reference simulator word address)
                 }
                 else
                 {
@@ -473,12 +474,12 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             }
             case 0b10000: // BLTZAL
             {
-                if (regs[sReg] < 0)
+                if (static_cast<int16_t>(regs[sReg]) < 0)
                 {
                     // Use signed immediates as relative branches could be negative
                     pc += (static_cast<int16_t>(immediate) << 2) / 4;
                     // return address is the instruction after the branch delay slot
-                    regs[31] = pc + 1;
+                    regs[31] = (pc + 1) * 4; // address after branch delay slot (MIPS byte address rather than reference simulator word address)
                 }
                 else
                 {
@@ -488,7 +489,7 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             }
             default:
             {
-                cerr << "Invalid tReg for OTHER BRANCHZ instruction: " << tReg << endl;
+                cerr << "Reference simulator: Invalid tReg for OTHER BRANCHZ instruction. tReg: " << tReg << endl;
                 exit(1);
                 break;
             }
@@ -646,22 +647,24 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
         {
             uint32_t immediate;
             tie(ignore, ignore, immediate) = decodeImmediateType(instruction);
+            simulateMIPSHelper(memory, pc + 1, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
             // MIPS supports byte addressing and reference simulator supports word addressing
             pc = (immediate << 2) / 4;
             break;
         }
         case 0b000011: // JAL
         {
-            regs[31] = pc + 1;
             uint32_t immediate;
             tie(ignore, ignore, immediate) = decodeImmediateType(instruction);
+            simulateMIPSHelper(memory, pc + 1, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
+            regs[31] = (pc + 2) * 4;                                                        // address after branch delay slot (MIPS byte address rather than reference simulator word address)
             // MIPS supports byte addressing and reference simulator supports word addressing
             pc = (immediate << 2) / 4 + memInstructionStartIdx;
             break;
         }
         default:
         {
-            cerr << "Invalid opcode: " << opcode << endl;
+            cerr << "Reference simulator: Invalid opcode: " << opcode << endl;
             exit(1);
             break;
         }

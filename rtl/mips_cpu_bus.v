@@ -190,10 +190,22 @@ assign add_out = pc_out + (extend_out << 2);
 logic and_result;
 assign and_result = branch && zero;
 
+logic branch_ctrl;
+logic[31:0] branch_address;
+branch_reg branch_reg0(
+    .clk(clk),
+    .add_out(add_out),
+    .and_result(and_result),
+    .exec1(state ==3),
+    .exec2(state ==4),
+    .branch_address(branch_address),
+    .branch_ctrl(branch_ctrl)
+);
+
 //MUX4 location
 assign pc_in = jump ?
     (regtojump ? read_data1 : {pc_out[31:28],instr[25:0]<<2}) :
-    ((and_result ? add_out : pc_out) + 4);
+    (branch_ctrl ? branch_address : pc_out+4);
 
 //from data memory
 assign address = pctoadd?pc_out:ALU_out;
@@ -225,7 +237,7 @@ always_comb begin
         write_data = readdata;
     end
     else if(link) begin
-        write_data = pc_out+4;
+        write_data = pc_out+8;
     end
     else if(loadimmed) begin
         write_data = loadresult;

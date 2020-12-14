@@ -1,4 +1,3 @@
 *.vcd
-mips_cpu_bus_tb
-mips_cpu_bus_tb.v
-mips_cpu_RAM_avalon.v
+rtl/mips_cpu_bus_tb.v
+rtl/mips_cpu_RAM_avalon.v

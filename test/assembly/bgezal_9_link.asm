@@ -5,4 +5,4 @@ ADDIU $v0, $v0, 100
 GreaterEqualZero:
 ADDIU $v0, $v0, 3
 ADDU $v0, $v0, $ra
-JR $ra
+JR $zero

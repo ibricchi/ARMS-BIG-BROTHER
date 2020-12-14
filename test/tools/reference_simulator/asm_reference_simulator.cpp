@@ -258,6 +258,7 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             {
                 uint32_t sReg;
                 tie(ignore, sReg, ignore, ignore) = decodeArithmeticType(instruction);
+                simulateMIPSHelper(memory, pc + 1, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
                 // MIPS supports byte addressing and reference simulator supports word addressing
                 pc = regs[sReg] / 4;
                 break;
@@ -463,7 +464,7 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
                     // Use signed immediates as relative branches could be negative
                     pc += (static_cast<int16_t>(immediate) << 2) / 4;
                     // return address is the instruction after the branch delay slot
-                    regs[31] = pc + 1;
+                    regs[31] = (pc + 1) * 4; // address after branch delay slot (MIPS byte address rather than reference simulator word address)
                 }
                 else
                 {
@@ -478,7 +479,7 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
                     // Use signed immediates as relative branches could be negative
                     pc += (static_cast<int16_t>(immediate) << 2) / 4;
                     // return address is the instruction after the branch delay slot
-                    regs[31] = pc + 1;
+                    regs[31] = (pc + 1) * 4; // address after branch delay slot (MIPS byte address rather than reference simulator word address)
                 }
                 else
                 {
@@ -646,15 +647,17 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
         {
             uint32_t immediate;
             tie(ignore, ignore, immediate) = decodeImmediateType(instruction);
+            simulateMIPSHelper(memory, pc + 1, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
             // MIPS supports byte addressing and reference simulator supports word addressing
             pc = (immediate << 2) / 4;
             break;
         }
         case 0b000011: // JAL
         {
-            regs[31] = pc + 1;
             uint32_t immediate;
             tie(ignore, ignore, immediate) = decodeImmediateType(instruction);
+            simulateMIPSHelper(memory, pc + 1, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
+            regs[31] = (pc + 2) * 4;                                                        // address after branch delay slot (MIPS byte address rather than reference simulator word address)
             // MIPS supports byte addressing and reference simulator supports word addressing
             pc = (immediate << 2) / 4 + memInstructionStartIdx;
             break;

@@ -43,11 +43,11 @@ int main(){
                 uint32_t op = it->data;
                 op >>= 26;
                 if(op == 0b000010 || op == 0b000011){ // if jump pattern
-                    uint32_t compareMem = memLine >> 2;
+                    uint32_t compareMem = ((memLine >> 2) << 6) >> 6;
                     it->data |= compareMem;
                 }
                 else{
-                    int32_t jumpDiff = (int32_t)(memLine - (it->memLine + 4)) >> 2; // adjust difference to be by instruction and not by byte
+                    uint32_t jumpDiff = (int32_t)(memLine - (it->memLine + 4)) >> 2; // adjust difference to be by instruction and not by byte
                     uint16_t checkLineSize = jumpDiff;
                     uint32_t checkLineSizeSignExtended = checkLineSize | (0xffff0000 & (-(checkLineSize>>15)));
                     // cout << hex << (checkLineSize>>15) << " " << checkLineSize << " " << checkLineSizeSignExtended << " " << jumpDiff << endl;

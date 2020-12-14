@@ -263,6 +263,17 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
                 pc = regs[sReg] / 4;
                 break;
             }
+            case 0b001001: // JALR
+            {
+                uint32_t sReg;
+                tie(ignore, sReg, ignore, ignore) = decodeArithmeticType(instruction);
+                simulateMIPSHelper(memory, pc + 1, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
+                // MIPS supports byte addressing and reference simulator supports word addressing
+                pc = regs[sReg] / 4;
+                // address after branch delay slot (MIPS byte address rather than reference simulator word address)
+                regs[31] = (pc + 2) * 4;
+                break;
+            }
             case 0b010000: // MFHI
             {
                 uint32_t dReg;

@@ -205,7 +205,7 @@ branch_reg branch_reg0(
 //MUX4 location
 assign pc_in = jump ?
     (regtojump ? read_data1 : {pc_out[31:28],instr[25:0]<<2}) :
-    (branch_ctrl ? branch_address : pc_out+4);
+    ((branch_ctrl ? branch_address : pc_out)+4);
 
 //from data memory
 assign address = pctoadd?pc_out:ALU_out;

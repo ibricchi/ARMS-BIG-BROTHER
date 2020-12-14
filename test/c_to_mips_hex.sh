@@ -10,8 +10,8 @@ mipsel-linux-gnu-objdump -d -S ./test/temp/${CFILE} > ./test/temp/${CFILE}.disas
 LINE_REGEX="^ *[0-9a-f]+:"
 grep -E "${LINE_REGEX}" ./test/temp/${CFILE}.disassembly > ./test/temp/${CFILE}.disassembly-lines
 
-EXCLUDE_NOP_REGEX="^((?!nop).)*$"
-grep -P "${EXCLUDE_NOP_REGEX}" ./test/temp/${CFILE}.disassembly-lines > ./test/temp/${CFILE}.disassembly-lines-no-nop
+#EXCLUDE_NOP_REGEX="^((?!nop).)*$"
+#grep -P "${EXCLUDE_NOP_REGEX}" ./test/temp/${CFILE}.disassembly-lines > ./test/temp/${CFILE}.disassembly-lines-no-nop
 
 HEX_REGEX="[0-9a-f]{8}"
-grep -oE "${HEX_REGEX}" ./test/temp/${CFILE}.disassembly-lines-no-nop > ./test/binary/${CFILE}.hex
+grep -oE "${HEX_REGEX}" ./test/temp/${CFILE}.disassembly-lines > ./test/binary/${CFILE}.hex

@@ -5,4 +5,4 @@ NOP                       # Branch delay slot
 ADDIU $v0, $v0, 100
 GreaterEqualZero:
 ADDIU $v0, $v0, 3
-JR $ra
+JR $zero

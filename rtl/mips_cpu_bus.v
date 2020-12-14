@@ -24,7 +24,7 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " PC_IN: ", add_out - 3217031168, " Zero: ", zero, " Branch: ", branch);
+    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " RegWrite: ", regwrite, " link: ", link, " regin: ", write_data);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
@@ -192,7 +192,7 @@ assign and_result = branch && zero;
 
 //MUX4 location
 assign pc_in = jump ?
-    (regtojump ? read_data1 : {pc_out[31:28],instr[25:0]<<2}) :
+    (regtojump ? read_data1 : {pc_out[31:28],{2'b00,instr[25:0]}<<2}) :
     ((and_result ? add_out : pc_out) + 4);
 
 //from data memory
@@ -225,7 +225,7 @@ always_comb begin
         write_data = readdata;
     end
     else if(link) begin
-        write_data = pc_out+4;
+        write_data = pc_out+8;
     end
     else if(loadimmed) begin
         write_data = loadresult;

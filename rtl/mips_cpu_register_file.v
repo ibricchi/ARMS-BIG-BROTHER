@@ -25,7 +25,7 @@ module register_file(
         else begin
             if(write_enable) begin
                 register[write_reg] <= write_data;
-                // $display("Setting reg ", write_reg, " to ", $signed(write_data));
+                // $display("Setting reg ", write_reg, " to ", write_data);
             end
         end
     end

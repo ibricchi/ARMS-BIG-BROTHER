@@ -68,7 +68,7 @@ always_comb begin
     exec1 = state==3;
     exec2 = state==4;
 
-    arith = fun == 6'b100001 | fun == 6'b100100 | fun == 6'b100101 | fun == 6'b101010 | fun == 6'b101011 | fun == 6'b100011 | fun == 6'b100110 | fun == 6'b000000 | fun == 6'b000011 | fun == 6'b000010 | fun == 6'b000100 | fun == 6'b000111 | fun == 6'b000110 | fun == 6'b010000 | fun == 6'b010010;
+    arith = fun == 6'b100001 | fun == 6'b100100 | fun == 6'b100101 | fun == 6'b101010 | fun == 6'b101011 | fun == 6'b100011 | fun == 6'b100110 | fun == 6'b000000 | fun == 6'b000011 | fun == 6'b000010 | fun == 6'b000100 | fun == 6'b000111 | fun == 6'b000110 | fun == 6'b010000 | fun == 6'b010010 | fun == 6'b001001;
 
     regjump = fun == 6'b001001 | fun == 6'b001000;
     branchlink = branchFunc == 5'b01011 || branchFunc == 5'b01010;
@@ -159,7 +159,7 @@ always_comb begin
                 end
                 hitoreg    = fun == 6'b010000; // MFHI
                 lotoreg    = fun == 6'b010010; // MFLO
-                link       = 0;
+                link       = fun == 6'b001001; // JALR
                 loadimmed  = 0;  //we only use this signal when instruction is LUI
             end
             
@@ -507,7 +507,7 @@ always_comb begin
                 memwrite   = 0;
                 regdst     = 0;
                 memtoreg   = 0;
-                regwrite   = 1 & exec2;
+                regwrite   = exec2;
                 inwrite    = 0;
                 pctoadd    = 0;
                 regtojump  = 0;
@@ -616,7 +616,7 @@ always_comb begin
                 div_mult_op= 2'b00;
                 hitoreg    = 0;
                 lotoreg    = 0;
-                link       = 0;
+                link       = 1;
                 loadimmed  = 0;
             end
         endcase

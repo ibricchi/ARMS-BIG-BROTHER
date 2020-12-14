@@ -37,7 +37,7 @@ always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low cha
         end
         2: begin // DECODE
             state <= 3;
-            $display("Entering EXEC1 STATE: %d, %d", pc_out-32'hbfc00000, pc_in, read_data1);
+            // $display("Entering EXEC1 STATE: ");
         end
         3: begin // EXEC1
             state <= 4;

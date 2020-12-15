@@ -24,8 +24,12 @@ else
 fi
 
 >&2 echo "  2 - Compiling test-bench"
-iverilog -g 2012 -s mips_cpu_bus_tb -P mips_cpu_bus_tb.RAM_INIT_FILE=\"./test/binary/${TESTCASE}.hex\" \
--o ./test/simulator/mips_cpu_bus_tb_${TESTCASE} $SOURCE_DIRECTORY/*.v
+iverilog -g 2012 \
+   $SOURCE_DIRECTORY/*.v \
+   ./test/verilog/*.v \
+   -s mips_cpu_bus_tb \
+   -P mips_cpu_bus_tb.RAM_INIT_FILE=\"./test/binary/${TESTCASE}.hex\" \
+   -o ./test/simulator/mips_cpu_bus_tb_${TESTCASE}
 
 >&2 echo "  3 - Running test-bench"
 set +e

@@ -24,7 +24,7 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " RegWrite: ", regwrite, " link: ", link, " regin: ", write_data);
+    $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " RegWrite: ", regwrite, " link: ", link, " regin: ", write_data);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
@@ -197,7 +197,7 @@ delay_reg delay_reg0(
     .add_out(add_out),
     .and_result(and_result),
     .jump(jump),
-    .jump_address((regtojump ? read_data1 : {pc_out[31:28],{2'b00,instr[25:0]}<<2})),
+    .jump_address((regtojump ? read_data1 : {pc_out[31:28],{2'b00,instr[25:0]}<<2})-4),
     .exec1(state ==3),
     .exec2(state ==4),
     .delay_address(delay_address),

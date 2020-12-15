@@ -16,6 +16,7 @@ module control_unit(
     
     output logic[3:0] ALUOp,    // constant     // see alu_contol for explanation of each possible value
     output logic      ALUSrc,   // constant     // if high ALU source is from instruction 16 bit imm, otherwise from registers
+    output logic      singed_imm,// constant     // if high immediate treated as signed
 
     output logic      jump,     // constant     // if high jump to position from isntruction imediate, otherwise advance from pc+4
     output logic      branch,   // constant     // if high allow conditional branchin if alu has zero flag set to high. PC will coniditionally be set to PC+4 if not zero, and pc + instruction immediate otherwise
@@ -80,6 +81,7 @@ always_comb begin
     if(fetch) begin // in fetch send pc to address
         ALUOp[3:0] = 4'b0000;
         ALUSrc     = 0;
+        singed_imm = 0;
         jump       = 0;
         branch     = 0;
         memread    = 1;
@@ -102,6 +104,7 @@ always_comb begin
     else if(decode) begin // in decode store instruction
         ALUOp[3:0] = 4'b0000;
         ALUSrc     = 0;
+        singed_imm = 0;
         jump       = 0;
         branch     = 0;
         memread    = 0;
@@ -130,6 +133,7 @@ always_comb begin
                             // THIS INCLUDES ARITHLOG DIVMULT SHIFT SHIFTV JUMPMOVETO
                 ALUOp[3:0] = 4'b0010; // this is the alu control that tells the alu to process based on function field of instr
                 ALUSrc     = 0; // the alu must read form register
+                singed_imm = 0;
                 jump       = regjump; // the pc must recieve data from normal +4 increment of pc unless we have a reg jump instr
                 branch     = 0; // same as reason as above
                 memread    = 0; // we don't want the cpu to stall for unecessary read
@@ -167,6 +171,7 @@ always_comb begin
             6'b001001: begin // ADDIU
                 ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 0;
                 memread    = 0;
@@ -189,6 +194,7 @@ always_comb begin
             6'b001100: begin // ANDI !TODO: not yet tested
                 ALUOp[3:0] = 4'b0100;
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 0;
                 memread    = 0;
@@ -210,6 +216,7 @@ always_comb begin
             6'b001101: begin // ORI !TODO: not yet tested
                 ALUOp[3:0] = 4'b0101;
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 0;
                 memread    = 0;
@@ -231,6 +238,7 @@ always_comb begin
             6'b001010: begin // SLTI !TODO
                 ALUOp[3:0] = 4'b0111;
                 ALUSrc     = 1;
+                singed_imm = 1;
                 jump       = 0;
                 branch     = 0;
                 memread    = 0;
@@ -252,6 +260,7 @@ always_comb begin
             6'b001011: begin // SLTIU !TODO
                 ALUOp[3:0] = 4'b1100;
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 0;
                 memread    = 0;
@@ -273,6 +282,7 @@ always_comb begin
             6'b001110: begin // XORI !TODO: not yet tested
                 ALUOp[3:0] = 4'b0110;
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 0;
                 memread    = 0;
@@ -297,6 +307,7 @@ always_comb begin
             //similar to load, but require an extra signal to control the immed field
                 ALUOp[3:0] = 4'b0000; //Don't care
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 0;
                 memread    = 1 & (exec1);
@@ -322,6 +333,7 @@ always_comb begin
             6'b000100: begin // BEQ 
                 ALUOp[3:0] = 4'b0001;
                 ALUSrc     = 0;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 1;
                 memread    = 0;
@@ -343,6 +355,7 @@ always_comb begin
             6'b000101: begin // BNE
                 ALUOp[3:0] = 4'b1000; 
                 ALUSrc     = 0;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 1;
                 memread    = 0;
@@ -366,6 +379,7 @@ always_comb begin
             6'b000111: begin // BGTZ !TODO
                 ALUOp[3:0] = 4'b1001;
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 1;
                 memread    = 0;
@@ -387,6 +401,7 @@ always_comb begin
             6'b000110: begin // BLEZ !TODO
                 ALUOp[3:0] = 4'b1010;
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 1;
                 memread    = 0;
@@ -410,6 +425,7 @@ always_comb begin
                 // you'll have to differentiate the different function codes
                 ALUOp[3:0] = 4'b1011;
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 1;
                 memread    = 0;
@@ -435,6 +451,7 @@ always_comb begin
             6'b100000: begin // LB Load the LS byte in to dt
                 ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 0;
                 memread    = 1 & (exec1);
@@ -457,6 +474,7 @@ always_comb begin
             6'b100100: begin // LBU !TODO
                 ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 0;
                 memread    = 1 & (exec1);
@@ -479,6 +497,7 @@ always_comb begin
             6'b100001: begin // LH !TODO
                 ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 0;
                 memread    = 1 & (exec1);
@@ -501,6 +520,7 @@ always_comb begin
             6'b100101: begin // LHU !TODO
                 ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 0;
                 memread    = 1 & (exec1);
@@ -523,6 +543,7 @@ always_comb begin
             6'b100011: begin // LW
                 ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 0;
                 memread    = 1 & (exec1);
@@ -556,6 +577,7 @@ always_comb begin
             6'b101011: begin // SW
                 ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 1;
+                singed_imm = 0;
                 jump       = 0;
                 branch     = 0;
                 memread    = 0;
@@ -579,6 +601,7 @@ always_comb begin
             6'b000010: begin // J
                 ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 0;
+                singed_imm = 0;
                 jump       = 1;
                 branch     = 0;
                 memread    = 0;
@@ -601,6 +624,7 @@ always_comb begin
             /*Store the return address to Register 31 */
                 ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 0;
+                singed_imm = 0;
                 jump       = 1;
                 branch     = 0;
                 memread    = 0;

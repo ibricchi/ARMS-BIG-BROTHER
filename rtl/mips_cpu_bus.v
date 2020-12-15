@@ -24,7 +24,7 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-    $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " RegWrite: ", regwrite, " link: ", link, " regin: ", write_data);
+    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " RegWrite: ", regwrite, " link: ", link, " regin: ", write_data);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;

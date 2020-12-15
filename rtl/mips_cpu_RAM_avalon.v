@@ -27,15 +27,13 @@ initial begin
         $display("RAM : INIT : Loading RAM contents from %s", RAM_INIT_FILE);
         $readmemh(RAM_INIT_FILE, memory);
     end
-    // memory[0] = 32'h24210000;
-    // memory[1] = 32'h24210000;
-    // memory[2] = 32'h24210000;
-    // memory[3] = 32'h24210000;
-    // memory[4] = 32'h0cFFFFFF;
-    // memory[5] = 32'h24210001;
-    // memory[6] = 32'h24210FFF;
-
-    
+    // memory[0] = 32'h24840001; //ADDIU R4 R4 1
+    // memory[1] = 32'h04910002; //BGEZAL R0
+    // memory[2] = 32'h24420032; //ADDIU V0 V0 50
+    // memory[3] = 32'h24420064; //ADDIU VO VO 100 //skipped
+    // memory[4] = 32'h24420003; //ADDIU V0 V0 3
+    // memory[5] = 32'h00000008; //Return
+    // memory[6] = 32'h00000000;
 end
 
 integer waitcycle;

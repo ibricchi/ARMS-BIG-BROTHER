@@ -4,6 +4,7 @@ module mips_cpu_bus_tb;
     parameter RAM_INIT_FILE = "";
     parameter TIMEOUT_CYCLES = 1000;
 
+
     logic clk;
     logic reset;
 
@@ -26,6 +27,7 @@ module mips_cpu_bus_tb;
         // $timeformat(-9, 1, " ns", 20);
         // $dumpfile("mips_cpu_bus_tb.vcd");
         // $dumpvars(0, mips_cpu_bus_tb);
+
         clk = 0;
 
         repeat(TIMEOUT_CYCLES) begin

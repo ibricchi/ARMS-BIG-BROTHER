@@ -205,11 +205,11 @@ delay_reg delay_reg0(
 );
 
 //MUX4 location
-assign pc_in = jump ?
-    (regtojump ? read_data1 : {pc_out[31:28],{2'b00,instr[25:0]}<<2}) :
-    ((delay_ctrl ? delay_address : pc_out)+4);
+// assign pc_in = jump ?
+//     (regtojump ? read_data1 : {pc_out[31:28],{2'b00,instr[25:0]}<<2}) :
+//     ((delay_ctrl ? delay_address : pc_out)+4);
 //MUX4 Location
-// assign pc_in = (delay_ctrl ? delay_address : pc_out)+4;
+assign pc_in = (delay_ctrl ? delay_address : pc_out)+4;
 //from data memory
 assign address = pctoadd?pc_out:ALU_out;
 

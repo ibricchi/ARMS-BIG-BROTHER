@@ -293,7 +293,7 @@ always_comb begin
             end
 
             //LOADI
-            6'b011111: begin // LUI
+            6'b001111: begin // LUI
             //similar to load, but require an extra signal to control the immed field
                 ALUOp[3:0] = 4'b0000; //Don't care
                 ALUSrc     = 1;
@@ -302,7 +302,7 @@ always_comb begin
                 memread    = 1 & (exec1);
                 memwrite   = 0;
                 regdst     = 0;
-                memtoreg   = 1; //combine with extra signal
+                memtoreg   = 0;
                 regwrite   = 1 & (exec2);
                 inwrite    = 0;
                 pctoadd    = 0;

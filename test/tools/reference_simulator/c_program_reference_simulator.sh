@@ -10,7 +10,7 @@ if [[ "$CFILE" == "" ]] ; then
 fi
 
 # compile c program
-g++ ./test/test_program/${CFILE}.c -o ./test/temp/${CFILE}
+g++ -std=c++11 ./test/test_program/${CFILE}.c -o ./test/temp/${CFILE}
 
 # run c program and capture output
 set +e

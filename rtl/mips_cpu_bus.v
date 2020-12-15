@@ -84,6 +84,7 @@ control_unit control_0(
     .branchFunc(instr[20:16]),
     .waitrequest(waitrequest),
 
+    .byteenable(byteenable),
     .ALUOp(ALUOp),
     .ALUSrc(ALUSrc),
     .jump(jump),
@@ -104,7 +105,6 @@ control_unit control_0(
     .lotoreg(lotoreg),
     .link(link),
     .loadimmed(loadimmed),
-    
     .ExtendOp(ExtendOp)
 );
 

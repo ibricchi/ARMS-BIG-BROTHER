@@ -30,6 +30,9 @@ tuple<uint32_t, uint32_t, uint32_t, uint32_t> decodeArithmeticType(uint32_t inst
 // Out[2] = immediate value (i)
 tuple<uint32_t, uint32_t, uint32_t> decodeImmediateType(uint32_t instruction);
 
+// Output: Immediate jump value
+uint32_t decodeJumpType(uint32_t instruction);
+
 // Extract byte from 4 byte word (unsigned)
 // byteNr <= 3
 uint32_t getByteFromWord(uint32_t word, uint32_t byteNr);

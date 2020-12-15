@@ -13,23 +13,55 @@ module div_mult_reg(
     output logic[31:0] lo
 );
 
-logic[63:0] in_1_u;
-logic[63:0] in_2_u;
-logic[63:0] in_1_s;
-logic[63:0] in_2_s;
+logic[63:0] in_1_u, in_2_u;
+
+logic in_1_s, in_2_s;
+logic[63:0] in_1_mag, in_2_mag;
 
 logic[63:0] prod;
-logic[63:0] div;
-logic[63:0] rem;
+logic[63:0] div, div_u, div_s;
+logic[63:0] rem, rem_u, rem_s;
 
 always_comb begin
     in_1_u = $unsigned(in_1);
     in_2_u = $unsigned(in_2);
-    in_1_s = $signed(in_1);
-    in_2_s = $signed(in_2);
-    prod = sin?(in_1_s*in_2_s):(in_1_u*in_2_u);
-    div = sin?(in_1_s/in_2_s):(in_1_u/in_2_u);
-    rem = sin?(in_1_s%in_2_s):(in_1_u%in_2_u);
+    div_u = in_1_u / in_2_u;
+    rem_u = in_1_u % in_2_u;
+
+    in_1_s = in_1[31];
+    in_2_s = in_2[31];
+    in_1_mag = in_1_s?$unsigned(-$signed(in_1)):$unsigned(in_1);
+    in_2_mag = in_2_s?$unsigned(-$signed(in_2)):$unsigned(in_2);
+    div_s = in_1_mag / in_2_mag;
+    rem_s = in_1_mag % in_2_mag;
+
+    prod = in_1_u * in_2_u; // multiplication is the same for signed and unsigned
+    if(sin) begin
+        if(in_1_s&&in_2_s) begin
+            div = div_s;
+            rem = - rem_s;
+            $display("-/- %d %d", $signed(div), $signed(rem));
+        end
+        else if(in_1_s) begin
+            div = -div_s;
+            rem = (rem_s==0)?(in_2_mag - rem_s):0;
+            $display("-/+ %d %d", $signed(div), $signed(rem));
+        end
+        else if(in_2_s) begin
+            div = -div_s;
+            rem = (rem_s==0)?0:(rem_s - in_2_mag);
+            $display("+/- %d %d", $signed(div), $signed(rem));
+        end
+        else begin
+            div = div_s;
+            rem = rem_s;
+            $display("+/+ %d %d", $signed(div), $signed(rem));
+        end
+    end
+    else begin
+        div = div_u;
+        rem = rem_u;
+    end
 end
 
 

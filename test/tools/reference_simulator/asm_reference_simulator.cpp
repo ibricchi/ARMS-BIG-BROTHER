@@ -473,10 +473,10 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
 
                 if (static_cast<int16_t>(regs[sReg]) >= 0)
                 {
-                    // Use signed immediates as relative branches could be negative
-                    pc += (static_cast<int16_t>(immediate) << 2) / 4;
                     // return address is the instruction after the branch delay slot
                     regs[31] = (pc + 1) * 4; // address after branch delay slot (MIPS byte address rather than reference simulator word address)
+                    // Use signed immediates as relative branches could be negative
+                    pc += (static_cast<int16_t>(immediate) << 2) / 4;
                 }
                 else
                 {
@@ -488,10 +488,10 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             {
                 if (static_cast<int16_t>(regs[sReg]) < 0)
                 {
-                    // Use signed immediates as relative branches could be negative
-                    pc += (static_cast<int16_t>(immediate) << 2) / 4;
                     // return address is the instruction after the branch delay slot
                     regs[31] = (pc + 1) * 4; // address after branch delay slot (MIPS byte address rather than reference simulator word address)
+                    // Use signed immediates as relative branches could be negative
+                    pc += (static_cast<int16_t>(immediate) << 2) / 4;
                 }
                 else
                 {

@@ -27,6 +27,16 @@ initial begin
         $display("RAM : INIT : Loading RAM contents from %s", RAM_INIT_FILE);
         $readmemh(RAM_INIT_FILE, memory);
     end
+    memory[0] = 32'h24210000;
+    memory[1] = 32'h24210000;
+    memory[2] = 32'h24210000;
+    memory[3] = 32'h24210000;
+    memory[4] = 32'h0cFFFFFF;
+    memory[5] = 32'h24210001;
+    memory[6] = 32'h24210FFF;
+
+
+    
 end
 
 integer waitcycle;

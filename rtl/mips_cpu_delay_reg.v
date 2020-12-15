@@ -21,14 +21,14 @@ always @(posedge clk) begin
         @(negedge exec2);
         delay_ctrl = 0;
     end
-    // if(jump == 1) begin
-    //     delay_address <= jump_address;
-    //     delay_ctrl = 0;
-    //     @(posedge exec1);
-    //     delay_ctrl = 1;
-    //     @(negedge exec2);
-    //     delay_ctrl = 0;
-    // end
+    if(jump == 1) begin
+        delay_address <= jump_address;
+        delay_ctrl = 0;
+        @(posedge exec1);
+        delay_ctrl = 1;
+        @(negedge exec2);
+        delay_ctrl = 0;
+    end
 
 end
 

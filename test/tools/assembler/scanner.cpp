@@ -746,7 +746,7 @@ uint32_t Scanner::instr_line(string instr, string::iterator& it, string::iterato
         break;
     }
     // LoadI
-    case 0b011111:{ // LUI
+    case 0b001111:{ // LUI
         skipWhiteSpace(it, end); // skip any whitespace before arguments
         uint8_t rt = read_reg(it, end, true);
         if(error) return 0;

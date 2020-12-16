@@ -236,6 +236,13 @@ assign ExtendRes2 = {24'h000000,byteRes[7:0]};          //LBU
 assign ExtendRes1 = { {17{HalfRes[15]}}, HalfRes[14:0] }; //LH
 assign ExtendRes0 = {16'h0000,HalfRes[15:0]};           //LHUs
 
+logic[31:0] LWL_result, LWR_result;
+
+integer LWL_index;
+assign LWL_index = 8*address[0]+16*address[1];
+assign LWL_result = (readdata[31:0] >>LWL_index <<LWL_index) + (read_data2[31:0] <<(32-LWL_index) >>(32-LWL_index));
+assign LWR_result = (readdata[31:0] <<LWL_index >>LWL_index) + (read_data2[31:0] >>(32-LWL_index) <<(32-LWL_index));
+
 always_comb begin
     if(memtoreg) begin
         write_data = readdata;
@@ -255,6 +262,8 @@ always_comb begin
     else if(ExtendOp != 0)begin 
         write_data = ExtendRes1;
         case(ExtendOp)
+            3'b001:write_data = LWL_result;
+            3'b010:write_data = LWR_result;
             3'b100:write_data = ExtendRes0;
             3'b101:write_data = ExtendRes1;
             3'b110:write_data = ExtendRes2;

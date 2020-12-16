@@ -24,7 +24,7 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-    // $display("Instruction: ", instr, " LWL_index: ", LWL_index, " address: ", address, " writedata %b: %h > %h > %h > %h", address_internal[1:0], read_data2, half_shifter, byte_shifter, writedata);
+    $display("Instruction: %h", instr, " LWL_index: %h", LWL_index, " reg write_data is : %h", write_data, " address_internal is %h", address_internal[31:0]);
     // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " address: ", address, " readdata %b: %h > %h > %h > %h", address_internal[1:0], readdata, HalfRes, byteRes, write_data);
     if(!waitrequest) case(state)
         0: begin // HALT
@@ -249,7 +249,7 @@ logic[31:0] LWL_result, LWR_result;
 integer LWL_index;
 assign LWL_index = 8*address_internal[0]+16*address_internal[1];
 assign LWL_result = (readdata[31:0] >>LWL_index <<LWL_index) + (read_data2[31:0] <<(32-LWL_index) >>(32-LWL_index));
-assign LWR_result = (readdata[31:0] <<(32-LWL_index) >>(32-LWL_index)) + (read_data2[31:0] >>LWL_index <<LWL_index);
+assign LWR_result = (readdata[31:0] <<(24-LWL_index) >>(24-LWL_index)) + (read_data2[31:0] >>(8+LWL_index) <<(8+LWL_index));
 
 always_comb begin
     if(memtoreg) begin

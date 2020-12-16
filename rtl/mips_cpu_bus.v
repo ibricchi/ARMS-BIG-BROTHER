@@ -24,7 +24,8 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-//     $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " RegWrite: ", regwrite, " link: ", link, " regin: ", write_data);
+    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " address: ", address, " writedata %b: %h > %h > %h > %h", address_internal[1:0], read_data2, half_shifter, byte_shifter, writedata);
+    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " address: ", address, " readdata %b: %h > %h > %h > %h", address_internal[1:0], readdata, HalfRes, byteRes, write_data);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
@@ -75,7 +76,7 @@ pc pc_0(
 logic[3:0] ALUOp;
 logic[1:0] div_mult_op;
 logic[2:0] ExtendOp;
-logic ALUSrc, singed_imm, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, hitoreg, lotoreg, link, loadimmed;
+logic bytewrite, halfwrite, ALUSrc, singed_imm, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, hitoreg, lotoreg, link, loadimmed;
 
 control_unit control_0(
     .opcode(instr[31:26]),
@@ -83,8 +84,11 @@ control_unit control_0(
     .fun(instr[5:0]),
     .branchFunc(instr[20:16]),
     .waitrequest(waitrequest),
+    .address_allign(address_internal[1:0]),
 
     .byteenable(byteenable),
+    .bytewrite(bytewrite),
+    .halfwrite(halfwrite),
     .ALUOp(ALUOp),
     .ALUSrc(ALUSrc),
     .singed_imm(singed_imm),
@@ -207,31 +211,33 @@ delay_reg delay_reg0(
     .delay_ctrl(delay_ctrl)
 );
 
-//MUX4 location
-// assign pc_in = jump ?
-//     (regtojump ? read_data1 : {pc_out[31:28],{2'b00,instr[25:0]}<<2}) :
-//     ((delay_ctrl ? delay_address : pc_out)+4);
-//MUX4 Location
-assign pc_in = (delay_ctrl ? delay_address : pc_out)+4;
-//from data memory
-assign address = pctoadd?pc_out:ALU_out;
-
-//writedata always second output of register
-assign writedata = read_data2;
-
 //MUX3
 logic[31:0] loadresult;
 assign loadresult = {instr[15:0],16'h0000};
+
+//MUX4 Location
+assign pc_in = (delay_ctrl ? delay_address : pc_out)+4;
+//from data memory
+logic[31:0] address_internal;
+assign address_internal = pctoadd?pc_out:ALU_out;
+assign address = {address_internal[31:2],2'b00};
+
+//writedata always second output of register shifted based on address
+logic[31:0] half_shifter, byte_shifter;
+assign half_shifter = (halfwrite & address_internal[1])?(read_data2<<16):read_data2;
+assign byte_shifter = (bytewrite & address_internal[0])?(half_shifter<<8):half_shifter;
+assign writedata = byte_shifter;
+
 
 //I really hate this way of implementing this function, but selection in wire (like instr[5:2]) in not allow in always_comb
 logic[31:0] ExtendRes1,ExtendRes2,ExtendRes3,ExtendRes0;
 logic[15:0] HalfRes;
 
-assign HalfRes = (address[1]==1)?readdata[31:16]:readdata[15: 0];
+assign HalfRes = address_internal[1]?readdata[31:16]:readdata[15:0];
 
 logic[7:0] byteRes;
 
-assign byteRes = (address[0]==1)?HalfRes[15:8]:HalfRes[7:0];
+assign byteRes = address_internal[0]?HalfRes[15:8]:HalfRes[7:0];
 
 assign ExtendRes3 = {{25{byteRes[7]}}, byteRes[6:0] };    //LB
 assign ExtendRes2 = {24'h000000,byteRes[7:0]};          //LBU

@@ -50,6 +50,12 @@ module mips_cpu_bus_tb;
 
         while(active) begin
             @(posedge clk);
+            if(waitrequest) begin
+                assert(address[1:0] == 2'b00) else begin
+                   $display("RAM: Error: Unlaigned address %b", address);
+                   $fatal(1); 
+                end
+            end
         end
 
         $display("TB: INFO: active = 0");

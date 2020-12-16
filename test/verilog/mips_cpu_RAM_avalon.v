@@ -60,9 +60,11 @@ always_ff @(posedge clk) begin
         end
         else if(waitcycle == 0) begin
             if(read) begin // set readdata if requested
+                // $display("Address: %h data: %h", address, memory[address]);
                 readdata <= memory[address];
             end
             else if(write) begin // set write data if requested
+                // $display("Bytenable: %b address: %h data: %h", byteenable, address, writedata);
                 memory[address] <= {
                     byteenable[3] ? writedata[31:24] : memory[address][31:24],
                     byteenable[2] ? writedata[23:16] : memory[address][23:16],
@@ -70,7 +72,7 @@ always_ff @(posedge clk) begin
                     byteenable[0] ? writedata[7:0] : memory[address][7:0]
                 };
             end
-            waitcycle <= $urandom_range(0,5); // reset reandom wait time (this can be set to a constant, random can be useful for testing)
+            waitcycle <= 1;//$urandom_range(0,5); // reset reandom wait time (this can be set to a constant, random can be useful for testing)
             waitrequest <= 0; // reset wait request
         end
     end

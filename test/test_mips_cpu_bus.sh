@@ -15,6 +15,13 @@ if [[ -z "${SOURCE_DIRECTORY}" ]] ; then
    exit
 fi
 
+# Give permission to child test script
+chmod +x \
+    ./test/tools/build_tools.sh \
+    ./test/c_to_mips_hex.sh \
+    ./test/run_one_testcase.sh \
+    ./test/tools/reference_simulator/c_program_reference_simulator.sh
+
 # Build all necessary tools
 ./test/tools/build_tools.sh
 

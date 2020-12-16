@@ -634,7 +634,7 @@ always_comb begin
 
             end
             6'b101000: begin // SB
-                byteenable = 4'b1000 >> address_allign;
+                byteenable = 4'b0001 << address_allign;
                 bytewrite  = 1;
                 halfwrite  = 1;
                 ALUOp[3:0] = 4'b0000;
@@ -659,7 +659,7 @@ always_comb begin
                 loadimmed  = 0;
             end
             6'b101001: begin // SH
-                byteenable = 4'b1100 >> address_allign;
+                byteenable = 4'b0011 << address_allign;
                 bytewrite  = 0;
                 halfwrite  = 1;
                 ALUOp[3:0] = 4'b0000;

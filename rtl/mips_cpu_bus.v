@@ -222,8 +222,8 @@ assign address = {address_internal[31:2],2'b00};
 
 //writedata always second output of register shifted based on address
 logic[31:0] half_shifter, byte_shifter;
-assign half_shifter = (!halfwrite | address_internal[1])?read_data2:(read_data2<<16);
-assign byte_shifter = (!bytewrite | address_internal[0])?half_shifter:(half_shifter<<8);
+assign half_shifter = (halfwrite & address_internal[1])?(read_data2<<16):read_data2;
+assign byte_shifter = (bytewrite & address_internal[0])?(half_shifter<<8):half_shifter;
 assign writedata = byte_shifter;
 
 
@@ -231,11 +231,11 @@ assign writedata = byte_shifter;
 logic[31:0] ExtendRes1,ExtendRes2,ExtendRes3,ExtendRes0;
 logic[15:0] HalfRes;
 
-assign HalfRes = address_internal[1]?readdata[15:0]:readdata[31:16];
+assign HalfRes = address_internal[1]?readdata[31:16]:readdata[15:0];
 
 logic[7:0] byteRes;
 
-assign byteRes = address_internal[0]?HalfRes[7:0]:HalfRes[15:8];
+assign byteRes = address_internal[0]?HalfRes[15:8]:HalfRes[7:0];
 
 assign ExtendRes3 = {{25{byteRes[7]}}, byteRes[6:0] };    //LB
 assign ExtendRes2 = {24'h000000,byteRes[7:0]};          //LBU

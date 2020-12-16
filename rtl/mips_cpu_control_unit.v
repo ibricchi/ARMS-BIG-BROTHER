@@ -585,10 +585,52 @@ always_comb begin
                 loadimmed  = 0;
             end
             6'b100010: begin // LWL !TODO
-                
+                byteenable = 4'b1111;
+                ALUOp[3:0] = 4'b0000; 
+                ALUSrc     = 1;
+                singed_imm = 0;
+                jump       = 0;
+                branch     = 0;
+                memread    = 1 & (exec1);
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = 1 & exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
+                link       = 0;
+                loadimmed  = 0;
+                ExtendOp   = 3'b001; //Tempory usage 
             end
             6'b100110: begin // LWR !TODO
-
+                byteenable = 4'b1111;
+                ALUOp[3:0] = 4'b0000; 
+                ALUSrc     = 1;
+                singed_imm = 0;
+                jump       = 0;
+                branch     = 0;
+                memread    = 1 & (exec1);
+                memwrite   = 0;
+                regdst     = 0;
+                memtoreg   = 0;
+                regwrite   = 1 & exec2;
+                inwrite    = 0;
+                pctoadd    = 0;
+                regtojump  = 0;
+                div_mult_en= 0; 
+                div_mult_signed = 0;
+                div_mult_op= 2'b00;
+                hitoreg    = 0;
+                lotoreg    = 0;
+                link       = 0;
+                loadimmed  = 0;
+                ExtendOp   = 3'b010; //Tempory usage 
             end
             6'b101000: begin // SB !TODO
 

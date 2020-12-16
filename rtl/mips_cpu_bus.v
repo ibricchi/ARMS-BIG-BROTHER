@@ -24,7 +24,7 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-//     $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " RegWrite: ", regwrite, " link: ", link, " regin: ", write_data);
+    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " address: ", address, " writedata %b: %h > %h > %h > %h", address_internal[1:0], read_data2, half_shifter, byte_shifter, writedata);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
@@ -219,9 +219,9 @@ assign address = {address_internal[31:2],2'b00};
 
 //writedata always second output of register shifted based on address
 logic[31:0] half_shifter, byte_shifter;
-assign half_shifter = address_internal[1]?(read_data2>>16):read_data2;
-assign byte_shifter = address_internal[0]?(half_shifter>>8):read_data2;
-assign writedata = byte_shifter;
+assign half_shifter = address_internal[1]?read_data2:(read_data2>>16);
+assign byte_shifter = address_internal[0]?read_data2:(half_shifter>>8);
+assign writedata = half_shifter;
 
 
 //I really hate this way of implementing this function, but selection in wire (like instr[5:2]) in not allow in always_comb

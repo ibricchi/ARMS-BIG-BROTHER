@@ -70,7 +70,7 @@ always_ff @(posedge clk) begin
                     byteenable[0] ? writedata[7:0] : memory[address][7:0]
                 };
             end
-            waitcycle <= $urandom_range(0,5); // reset reandom wait time (this can be set to a constant, random can be useful for testing)
+            waitcycle <= 1;//$urandom_range(0,5); // reset reandom wait time (this can be set to a constant, random can be useful for testing)
             waitrequest <= 0; // reset wait request
         end
     end

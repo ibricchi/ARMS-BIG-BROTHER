@@ -75,7 +75,7 @@ pc pc_0(
 logic[3:0] ALUOp;
 logic[1:0] div_mult_op;
 logic[2:0] ExtendOp;
-logic ALUSrc, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, hitoreg, lotoreg, link, loadimmed;
+logic ALUSrc, singed_imm, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, hitoreg, lotoreg, link, loadimmed;
 
 control_unit control_0(
     .opcode(instr[31:26]),
@@ -86,6 +86,7 @@ control_unit control_0(
 
     .ALUOp(ALUOp),
     .ALUSrc(ALUSrc),
+    .singed_imm(singed_imm),
     .jump(jump),
     .branch(branch),
     .memread(read),
@@ -159,7 +160,7 @@ assign unextend_out = {16'h0000, instr[15:0]};
 assign extend_out = {{16{instr[15]}}, instr[15:0]};
 
 logic[31:0] alu_b;
-assign alu_b = (ALUSrc == 0) ? read_data2 : unextend_out;
+assign alu_b = (ALUSrc == 0) ? read_data2 : (singed_imm?extend_out:unextend_out);
 
 //ALU Control
 logic[4:0] ALUCtrl;

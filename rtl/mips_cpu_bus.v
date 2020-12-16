@@ -83,7 +83,6 @@ control_unit control_0(
     .fun(instr[5:0]),
     .branchFunc(instr[20:16]),
     .waitrequest(waitrequest),
-    .address_allignment(address_internal[1:0]),
 
     .byteenable(byteenable),
     .ALUOp(ALUOp),

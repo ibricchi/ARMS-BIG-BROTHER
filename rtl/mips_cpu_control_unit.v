@@ -5,7 +5,6 @@ module control_unit(
     input logic[5:0] fun,
     input logic[4:0] branchFunc,    //Could minimise to a single bit logic if needed (able to pass the test)
     input logic waitrequest,
-    input logic[1:0] address_allignment,
 
     /*
     certain outputs can remain constant as they do not alter the state of the cpu
@@ -389,6 +388,7 @@ always_comb begin
                 link       = 0;
                 loadimmed  = 0;
             end
+
             // BRANCHZ + OTHER BRANCHZ
             6'b000111: begin // BGTZ !TODO
                 byteenable = 4'b1111;
@@ -591,50 +591,10 @@ always_comb begin
 
             end
             6'b101000: begin // SB !TODO
-                byteenable = 4'b1000>>address_allignment;
-                ALUOp[3:0] = 4'b0000;
-                ALUSrc     = 1;
-                singed_imm = 0;
-                jump       = 0;
-                branch     = 0;
-                memread    = 0;
-                memwrite   = 1 & exec2;
-                regdst     = 1; 
-                memtoreg   = 0;
-                regwrite   = 0;
-                inwrite    = 0;
-                pctoadd    = 0;
-                regtojump  = 0;
-                div_mult_en= 0; 
-                div_mult_signed = 0;
-                div_mult_op= 2'b00;
-                hitoreg    = 0;
-                lotoreg    = 0;
-                link       = 0;
-                loadimmed  = 0;
+
             end
             6'b101001: begin // SH !TODO
-                byteenable = 4'b1100>>address_allignment;
-                ALUOp[3:0] = 4'b0000;
-                ALUSrc     = 1;
-                singed_imm = 0;
-                jump       = 0;
-                branch     = 0;
-                memread    = 0;
-                memwrite   = 1 & exec2;
-                regdst     = 1; 
-                memtoreg   = 0;
-                regwrite   = 0;
-                inwrite    = 0;
-                pctoadd    = 0;
-                regtojump  = 0;
-                div_mult_en= 0; 
-                div_mult_signed = 0;
-                div_mult_op= 2'b00;
-                hitoreg    = 0;
-                lotoreg    = 0;
-                link       = 0;
-                loadimmed  = 0;
+
             end
             6'b101011: begin // SW
                 byteenable = 4'b1111;

@@ -617,11 +617,10 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
         {
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
-            assert(regs[tReg] < 256); // must fit inside one byte
             // reference simulator memory supports word rather than byte addressing
             uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
             uint32_t byteNr = (regs[sReg] + immediate) % 4;
-            uint32_t byte = regs[tReg];
+            uint32_t byte = regs[tReg] >> 24; // select least significant byte
             word = replaceByteInWord(word, byte, byteNr);
             memory[(regs[sReg] + immediate) / 4] = word;
             pc++;
@@ -635,9 +634,10 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
             uint32_t byteNr = (regs[sReg] + immediate) % 4;
             assert(byteNr == 0 || byteNr == 2); // needs to be half-word alligned
+            // half word is least significant bytes
             uint32_t halfWord = regs[tReg];
-            uint32_t lowerByte = getByteFromWord(halfWord, byteNr);
-            uint32_t higherByte = getByteFromWord(halfWord, byteNr + 1);
+            uint32_t lowerByte = getByteFromWord(halfWord, 0);
+            uint32_t higherByte = getByteFromWord(halfWord, 1);
             word = replaceByteInWord(word, lowerByte, byteNr);
             word = replaceByteInWord(word, higherByte, byteNr + 1);
             memory[(regs[sReg] + immediate) / 4] = word;

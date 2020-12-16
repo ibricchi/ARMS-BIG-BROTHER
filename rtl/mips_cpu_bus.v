@@ -24,8 +24,8 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-    $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " address: ", address, " writedata %b: %h > %h > %h > %h", address_internal[1:0], read_data2, half_shifter, byte_shifter, writedata);
-    $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " address: ", address, " readdata %b: %h > %h > %h > %h", address_internal[1:0], readdata, HalfRes, byteRes, write_data);
+    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " address: ", address, " writedata %b: %h > %h > %h > %h", address_internal[1:0], read_data2, half_shifter, byte_shifter, writedata);
+    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " address: ", address, " readdata %b: %h > %h > %h > %h", address_internal[1:0], readdata, HalfRes, byteRes, write_data);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;

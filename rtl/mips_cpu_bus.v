@@ -24,7 +24,7 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " RegWrite: ", regwrite, " link: ", link, " regin: ", write_data);
+//     $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " RegWrite: ", regwrite, " link: ", link, " regin: ", write_data);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
@@ -190,23 +190,26 @@ assign add_out = pc_out + (extend_out << 2);
 logic and_result;
 assign and_result = branch && zero;
 
-logic branch_ctrl;
-logic[31:0] branch_address;
-branch_reg branch_reg0(
+logic delay_ctrl;
+logic[31:0] delay_address;
+delay_reg delay_reg0(
     .clk(clk),
     .add_out(add_out),
     .and_result(and_result),
+    .jump(jump),
+    .jump_address((regtojump ? read_data1 : {pc_out[31:28],{2'b00,instr[25:0]}<<2})-4),
     .exec1(state ==3),
     .exec2(state ==4),
-    .branch_address(branch_address),
-    .branch_ctrl(branch_ctrl)
+    .delay_address(delay_address),
+    .delay_ctrl(delay_ctrl)
 );
 
 //MUX4 location
-assign pc_in = jump ?
-    (regtojump ? read_data1 : {pc_out[31:28],{2'b00,instr[25:0]}<<2}) :
-    ((branch_ctrl ? branch_address : pc_out)+4);
-
+// assign pc_in = jump ?
+//     (regtojump ? read_data1 : {pc_out[31:28],{2'b00,instr[25:0]}<<2}) :
+//     ((delay_ctrl ? delay_address : pc_out)+4);
+//MUX4 Location
+assign pc_in = (delay_ctrl ? delay_address : pc_out)+4;
 //from data memory
 assign address = pctoadd?pc_out:ALU_out;
 

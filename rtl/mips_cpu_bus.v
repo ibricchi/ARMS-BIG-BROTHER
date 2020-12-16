@@ -205,31 +205,29 @@ delay_reg delay_reg0(
     .delay_ctrl(delay_ctrl)
 );
 
-//MUX4 location
-// assign pc_in = jump ?
-//     (regtojump ? read_data1 : {pc_out[31:28],{2'b00,instr[25:0]}<<2}) :
-//     ((delay_ctrl ? delay_address : pc_out)+4);
-//MUX4 Location
-assign pc_in = (delay_ctrl ? delay_address : pc_out)+4;
-//from data memory
-assign address = pctoadd?pc_out:ALU_out;
-
-//writedata always second output of register
-assign writedata = read_data2;
-
 //MUX3
 logic[31:0] loadresult;
 assign loadresult = {instr[15:0],16'h0000};
+
+//MUX4 Location
+assign pc_in = (delay_ctrl ? delay_address : pc_out)+4;
+//from data memory
+logic[31:0] address_internal;
+assign address_internal = pctoadd?pc_out:ALU_out;
+assign address = {address_internal[31:2],2'b00};
+
+//writedata always second output of register
+assign writedata = read_data2;
 
 //I really hate this way of implementing this function, but selection in wire (like instr[5:2]) in not allow in always_comb
 logic[31:0] ExtendRes1,ExtendRes2,ExtendRes3,ExtendRes0;
 logic[15:0] HalfRes;
 
-assign HalfRes = (address[1]==1)?readdata[31:16]:readdata[15: 0];
+assign HalfRes = address_internal[1]?readdata[31:16]:readdata[15:0];
 
 logic[7:0] byteRes;
 
-assign byteRes = (address[0]==1)?HalfRes[15:8]:HalfRes[7:0];
+assign byteRes = (address_internal[0])?HalfRes[15:8]:HalfRes[7:0];
 
 assign ExtendRes3 = {{25{byteRes[7]}}, byteRes[6:0] };    //LB
 assign ExtendRes2 = {24'h000000,byteRes[7:0]};          //LBU

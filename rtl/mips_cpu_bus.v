@@ -216,8 +216,12 @@ logic[31:0] address_internal;
 assign address_internal = pctoadd?pc_out:ALU_out;
 assign address = {address_internal[31:2],2'b00};
 
-//writedata always second output of register
-assign writedata = read_data2;
+//writedata always second output of register shifted based on address
+logic[31:0] half_shifter, byte_shifter;
+assign half_shifter = address_internal[1]?(read_data2>>16):read_data2;
+assign byte_shifter = address_internal[0]?(half_shifter>>8):read_data2;
+assign writedata = byte_shifter;
+
 
 //I really hate this way of implementing this function, but selection in wire (like instr[5:2]) in not allow in always_comb
 logic[31:0] ExtendRes1,ExtendRes2,ExtendRes3,ExtendRes0;

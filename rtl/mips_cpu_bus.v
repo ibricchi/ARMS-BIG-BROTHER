@@ -25,6 +25,7 @@ end
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
     $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " address: ", address, " writedata %b: %h > %h > %h > %h", address_internal[1:0], read_data2, half_shifter, byte_shifter, writedata);
+    $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " address: ", address, " readdata %b: %h > %h > %h > %h", address_internal[1:0], readdata, HalfRes, byteRes, write_data);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
@@ -75,7 +76,7 @@ pc pc_0(
 logic[3:0] ALUOp;
 logic[1:0] div_mult_op;
 logic[2:0] ExtendOp;
-logic bytewrite, ALUSrc, singed_imm, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, hitoreg, lotoreg, link, loadimmed;
+logic bytewrite, halfwrite, ALUSrc, singed_imm, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, hitoreg, lotoreg, link, loadimmed;
 
 control_unit control_0(
     .opcode(instr[31:26]),
@@ -87,6 +88,7 @@ control_unit control_0(
 
     .byteenable(byteenable),
     .bytewrite(bytewrite),
+    .halfwrite(halfwrite),
     .ALUOp(ALUOp),
     .ALUSrc(ALUSrc),
     .singed_imm(singed_imm),
@@ -220,7 +222,7 @@ assign address = {address_internal[31:2],2'b00};
 
 //writedata always second output of register shifted based on address
 logic[31:0] half_shifter, byte_shifter;
-assign half_shifter = address_internal[1]?read_data2:(read_data2<<16);
+assign half_shifter = (!halfwrite | address_internal[1])?read_data2:(read_data2<<16);
 assign byte_shifter = (!bytewrite | address_internal[0])?half_shifter:(half_shifter<<8);
 assign writedata = byte_shifter;
 

@@ -40,17 +40,17 @@ always_comb begin
         if(in_1_s&&in_2_s) begin
             div = div_s;
             rem = - rem_s;
-            $display("-/- %d %d", $signed(div), $signed(rem));
+            // $display("-/- %d %d", $signed(div), $signed(rem));
         end
         else if(in_1_s) begin
             div = -div_s;
             rem = (rem_s==0)?(in_2_mag - rem_s):0;
-            $display("-/+ %d %d", $signed(div), $signed(rem));
+            // $display("-/+ %d %d", $signed(div), $signed(rem));
         end
         else if(in_2_s) begin
             div = -div_s;
             rem = (rem_s==0)?0:(rem_s - in_2_mag);
-            $display("+/- %d %d", $signed(div), $signed(rem));
+            // $display("+/- %d %d", $signed(div), $signed(rem));
         end
         else begin
             div = div_s;

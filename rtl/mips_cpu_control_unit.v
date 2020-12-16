@@ -16,6 +16,7 @@ module control_unit(
     */
 
     output logic[3:0] byteenable,
+    output logic bytewrite,
     
     output logic[3:0] ALUOp,    // constant     // see alu_contol for explanation of each possible value
     output logic      ALUSrc,   // constant     // if high ALU source is from instruction 16 bit imm, otherwise from registers
@@ -83,6 +84,7 @@ always_comb begin
 
     if(fetch) begin // in fetch send pc to address
         byteenable = 4'b1111;
+        bytewrite  = 0;
         ALUOp[3:0] = 4'b0000;
         ALUSrc     = 0;
         singed_imm = 0;
@@ -107,6 +109,7 @@ always_comb begin
     end
     else if(decode) begin // in decode store instruction
         byteenable = 4'b1111;
+        bytewrite  = 0;
         ALUOp[3:0] = 4'b0000;
         ALUSrc     = 0;
         singed_imm = 0;
@@ -137,6 +140,7 @@ always_comb begin
             6'b000000: begin /* REGISTER INSTR WITH FN AS DIFFERENCE */
                             // THIS INCLUDES ARITHLOG DIVMULT SHIFT SHIFTV JUMPMOVETO
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0010; // this is the alu control that tells the alu to process based on function field of instr
                 ALUSrc     = 0; // the alu must read form register
                 singed_imm = 0;
@@ -176,6 +180,7 @@ always_comb begin
             // ARITHLOGI
             6'b001001: begin // ADDIU
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -200,6 +205,7 @@ always_comb begin
 
             6'b001100: begin // ANDI !TODO: not yet tested
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0100;
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -223,6 +229,7 @@ always_comb begin
             end
             6'b001101: begin // ORI !TODO: not yet tested
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0101;
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -246,6 +253,7 @@ always_comb begin
             end
             6'b001010: begin // SLTI !TODO
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0111;
                 ALUSrc     = 1;
                 singed_imm = 1;
@@ -269,6 +277,7 @@ always_comb begin
             end
             6'b001011: begin // SLTIU !TODO
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b1100;
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -292,6 +301,7 @@ always_comb begin
             end
             6'b001110: begin // XORI !TODO: not yet tested
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0110;
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -318,6 +328,7 @@ always_comb begin
             6'b001111: begin // LUI
             //similar to load, but require an extra signal to control the immed field
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0000; //Don't care
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -345,6 +356,7 @@ always_comb begin
             // BRANCH
             6'b000100: begin // BEQ 
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0001;
                 ALUSrc     = 0;
                 singed_imm = 0;
@@ -368,6 +380,7 @@ always_comb begin
             end
             6'b000101: begin // BNE
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b1000; 
                 ALUSrc     = 0;
                 singed_imm = 0;
@@ -393,6 +406,7 @@ always_comb begin
             // BRANCHZ + OTHER BRANCHZ
             6'b000111: begin // BGTZ !TODO
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b1001;
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -416,6 +430,7 @@ always_comb begin
             end
             6'b000110: begin // BLEZ !TODO
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b1010;
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -441,6 +456,7 @@ always_comb begin
                 // BLTZ has function code of 00000
                 // you'll have to differentiate the different function codes
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b1011;
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -468,6 +484,7 @@ always_comb begin
             // LOADSTORE
             6'b100000: begin // LB Load the LS byte in to dt
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -492,6 +509,7 @@ always_comb begin
             end
             6'b100100: begin // LBU !TODO
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -516,6 +534,7 @@ always_comb begin
             end
             6'b100001: begin // LH !TODO
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -540,6 +559,7 @@ always_comb begin
             end
             6'b100101: begin // LHU !TODO
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -564,6 +584,7 @@ always_comb begin
             end
             6'b100011: begin // LW
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0000; 
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -591,8 +612,9 @@ always_comb begin
             6'b100110: begin // LWR !TODO
 
             end
-            6'b101000: begin // SB !TODO
+            6'b101000: begin // SB
                 byteenable = 4'b1000 >> address_allign;
+                bytewrite  = 1;
                 ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -614,8 +636,9 @@ always_comb begin
                 link       = 0;
                 loadimmed  = 0;
             end
-            6'b101001: begin // SH !TODO
+            6'b101001: begin // SH
                 byteenable = 4'b1100 >> address_allign;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -639,6 +662,7 @@ always_comb begin
             end
             6'b101011: begin // SW
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 1;
                 singed_imm = 0;
@@ -664,6 +688,7 @@ always_comb begin
             // JUMP
             6'b000010: begin // J
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 0;
                 singed_imm = 0;
@@ -688,6 +713,7 @@ always_comb begin
             6'b000011: begin // JAL 
             /*Store the return address to Register 31 */
                 byteenable = 4'b1111;
+                bytewrite  = 0;
                 ALUOp[3:0] = 4'b0000;
                 ALUSrc     = 0;
                 singed_imm = 0;

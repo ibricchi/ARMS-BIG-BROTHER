@@ -575,15 +575,36 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // reference simulator memory supports word rather than byte addressing
-            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
-            assert((regs[sReg] + immediate) % 4 == 0);            // needs to be word aligned
-            uint32_t lowerByte = getByteFromWord(word, 2);
-            uint32_t higherByte = getByteFromWord(word, 3);
-            // combine lowerByte and higherByte into half-word
-            regs[tReg] = higherByte << 8;
-            regs[tReg] |= lowerByte;
-            // shift to upper 16 bits
-            regs[tReg] <<= 16;
+            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            uint32_t word, lowerByte, higherByte;
+            // allow roll-over to next word
+            switch (byteNr)
+            {
+            case 0:
+                word = memory[(regs[sReg] + immediate) / 4];
+                lowerByte = getByteFromWord(word, 2);
+                higherByte = getByteFromWordSigned(word, 3);
+                break;
+            case 1:
+                word = memory[(regs[sReg] + immediate) / 4];
+                lowerByte = getByteFromWord(word, 3);
+                word = memory[(regs[sReg] + immediate) / 4 + 1];
+                higherByte = getByteFromWordSigned(word, 0);
+                break;
+            case 2:
+                word = memory[(regs[sReg] + immediate) / 4 + 1];
+                lowerByte = getByteFromWord(word, 0);
+                higherByte = getByteFromWordSigned(word, 1);
+                break;
+            case 3:
+                word = memory[(regs[sReg] + immediate) / 4 + 1];
+                lowerByte = getByteFromWord(word, 1);
+                higherByte = getByteFromWordSigned(word, 2);
+                break;
+            }
+            // insert into upper bits of register
+            regs[tReg] = replaceByteInWord(regs[tReg], lowerByte, 2);
+            regs[tReg] = replaceByteInWord(regs[tReg], higherByte, 3);
             pc++;
             break;
         }
@@ -592,13 +613,36 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // reference simulator memory supports word rather than byte addressing
-            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
-            assert((regs[sReg] + immediate) % 4 == 0);            // needs to be word aligned
-            uint32_t lowerByte = getByteFromWord(word, 0);
-            uint32_t higherByte = getByteFromWord(word, 1);
-            // combine lowerByte and higherByte into half-word
-            regs[tReg] = higherByte << 8;
-            regs[tReg] |= lowerByte;
+            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            uint32_t word, lowerByte, higherByte;
+            // allow roll-over to next word
+            switch (byteNr)
+            {
+            case 0:
+                word = memory[(regs[sReg] + immediate) / 4];
+                lowerByte = getByteFromWord(word, 0);
+                higherByte = getByteFromWordSigned(word, 1);
+                break;
+            case 1:
+                word = memory[(regs[sReg] + immediate) / 4];
+                lowerByte = getByteFromWord(word, 1);
+                higherByte = getByteFromWordSigned(word, 2);
+                break;
+            case 2:
+                word = memory[(regs[sReg] + immediate) / 4];
+                lowerByte = getByteFromWord(word, 2);
+                higherByte = getByteFromWordSigned(word, 3);
+                break;
+            case 3:
+                word = memory[(regs[sReg] + immediate) / 4];
+                lowerByte = getByteFromWord(word, 3);
+                word = memory[(regs[sReg] + immediate) / 4 + 1];
+                higherByte = getByteFromWordSigned(word, 0);
+                break;
+            }
+            // insert into lower bits of register
+            regs[tReg] = replaceByteInWord(regs[tReg], lowerByte, 0);
+            regs[tReg] = replaceByteInWord(regs[tReg], higherByte, 1);
             pc++;
             break;
         }

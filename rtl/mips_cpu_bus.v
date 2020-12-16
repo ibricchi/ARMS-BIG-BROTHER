@@ -241,7 +241,7 @@ logic[31:0] LWL_result, LWR_result;
 integer LWL_index;
 assign LWL_index = 8*address[0]+16*address[1];
 assign LWL_result = (readdata[31:0] >>LWL_index <<LWL_index) + (read_data2[31:0] <<(32-LWL_index) >>(32-LWL_index));
-assign LWR_result = (readdata[31:0] <<LWL_index >>LWL_index) + (read_data2[31:0] >>(32-LWL_index) <<(32-LWL_index));
+assign LWR_result = (readdata[31:0] <<(32-LWL_index) >>(32-LWL_index)) + (read_data2[31:0] >>LWL_index <<LWL_index);
 
 always_comb begin
     if(memtoreg) begin

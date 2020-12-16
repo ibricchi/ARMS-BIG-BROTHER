@@ -15,9 +15,7 @@ always_comb begin
         5'b00010: result = a + b; //ADD
         5'b00110: result = a - b; //SUB
         5'b00111: result = a < b; //SLTU (set on less than)
-        5'b01000: begin result = $signed(a)<$signed(b); // SLT
-            $display("%d < %d = result", $signed(a), $signed(b), result);
-        end
+        5'b01000: result = $signed(a)<$signed(b); // SLT
         5'b01001: result = b << as; // SLL
         5'b01010: result = $signed(b) >>> as; // SRA
         5'b01011: result = b >> as; // SRL 

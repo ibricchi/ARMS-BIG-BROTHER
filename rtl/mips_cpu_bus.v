@@ -127,7 +127,6 @@ logic[4:0] write_reg;
 logic[31:0] write_data;
 logic branch_regwrite;
 assign write_reg = (regdst == 0) ? (link? 5'b11111:instr[20:16]) : instr[15:11];
-assign branch_regwrite = regwrite & (!branch | zero);
 
 register_file reg_file_0(
     .clk(clk),
@@ -135,7 +134,7 @@ register_file reg_file_0(
 
     .read_index1(instr[25:21]),
     .read_index2(instr[20:16]),
-    .write_enable(branch_regwrite),
+    .write_enable(regwrite),
     .write_reg(write_reg),
     .write_data(write_data),
 

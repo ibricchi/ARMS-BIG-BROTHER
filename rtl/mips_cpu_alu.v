@@ -14,7 +14,7 @@ always_comb begin
         5'b00001: result = a | b; //OR
         5'b00010: result = a + b; //ADD
         5'b00110: result = a - b; //SUB
-        5'b00111: result = a < b; //SLTU (set on less than)
+        5'b00111: result = $unsigned(a) < $unsigned(b); //SLTU (set on less than)
         5'b01000: result = $signed(a)<$signed(b); // SLT
         5'b01001: result = b << as; // SLL
         5'b01010: result = $signed(b) >>> as; // SRA

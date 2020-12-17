@@ -297,7 +297,7 @@ always_comb begin
                 halfwrite  = 0;
                 ALUOp[3:0] = 4'b1100;
                 ALUSrc     = 1;
-                singed_imm = 0;
+                singed_imm = 1;
                 jump       = 0;
                 branch     = 0;
                 memread    = 0;

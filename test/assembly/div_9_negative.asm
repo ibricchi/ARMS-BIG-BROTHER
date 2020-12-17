@@ -1,7 +1,6 @@
 ADDIU $a0, $a0, 10
 SUBU $a1, $a1, $a0
-MULT $a0, $a1
+SUBU $a2, $a2, $a0
+DIV $a1, $a2
 MFLO $v0
-MFHI $a2
-ADDU $v0, $v0, $a2
 JR $ra

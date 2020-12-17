@@ -659,7 +659,7 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             // reference simulator memory supports word rather than byte addressing
             uint32_t word = memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4]; // will be rounded down
             uint32_t byteNr = (regs[sReg] + static_cast<int16_t>(immediate)) % 4;
-            uint32_t byte = regs[tReg];
+            uint32_t byte = getByteFromWord(regs[tReg], 0); // select least significant byte
             word = replaceByteInWord(word, byte, byteNr);
             memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4] = word;
             pc++;

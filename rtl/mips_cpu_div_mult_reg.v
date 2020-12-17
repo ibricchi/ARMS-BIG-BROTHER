@@ -13,12 +13,12 @@ module div_mult_reg(
     output logic[31:0] lo
 );
 
-logic[63:0] in_1_u, in_2_u;
+logic[63:0] in_1_u, in_2_u, in_1_se, in_2_se;
 
 logic in_1_s, in_2_s;
 logic[63:0] in_1_mag, in_2_mag;
 
-logic[63:0] prod;
+logic[63:0] prod, prod_u, prod_s;
 logic[63:0] div, div_u, div_s;
 logic[63:0] rem, rem_u, rem_s;
 
@@ -27,6 +27,9 @@ assign in_2_s = in_2[31];
 always_comb begin
     in_1_u = $unsigned(in_1);
     in_2_u = $unsigned(in_2);
+    in_1_se = $signed(in_1);
+    in_2_se = $signed(in_2);
+
     div_u = in_1_u / in_2_u;
     rem_u = in_1_u % in_2_u;
 
@@ -35,7 +38,10 @@ always_comb begin
     div_s = in_1_mag / in_2_mag;
     rem_s = in_1_mag % in_2_mag;
 
-    prod = in_1_u * in_2_u; // multiplication is the same for signed and unsigned
+    prod_u = in_1_u * in_2_u;
+    prod_s = in_1_se * in_2_se;
+    prod = sin?prod_s:prod_u;
+    
     if(sin) begin
         if(in_1_s&&in_2_s) begin
             div = div_s;
@@ -83,6 +89,7 @@ always_ff @(posedge clk) begin
                 2'b10: begin // MULTU
                     hi <= prod[63:32];
                     lo <= prod[31:0];
+                    $display("Multiplication %h:%h", prod[63:32], prod[31:0]);
                 end
                 2'b11: begin // DIVU
                     lo <= div[31:0];

@@ -22,14 +22,14 @@ logic[63:0] prod;
 logic[63:0] div, div_u, div_s;
 logic[63:0] rem, rem_u, rem_s;
 
+assign in_1_s = in_1[31];
+assign in_2_s = in_2[31];
 always_comb begin
     in_1_u = $unsigned(in_1);
     in_2_u = $unsigned(in_2);
     div_u = in_1_u / in_2_u;
     rem_u = in_1_u % in_2_u;
 
-    in_1_s = in_1[31];
-    in_2_s = in_2[31];
     in_1_mag = in_1_s?$unsigned(-$signed(in_1)):$unsigned(in_1);
     in_2_mag = in_2_s?$unsigned(-$signed(in_2)):$unsigned(in_2);
     div_s = in_1_mag / in_2_mag;
@@ -55,7 +55,7 @@ always_comb begin
         else begin
             div = div_s;
             rem = rem_s;
-            $display("+/+ %d %d", $signed(div), $signed(rem));
+            // $display("+/+ %d %d", $signed(div), $signed(rem));
         end
     end
     else begin

@@ -57,10 +57,11 @@ always_comb begin
             rem = rem_s;
             // $display("+/+ %d %d", $signed(div), $signed(rem));
         end
+        rem = (rem == in_2_mag)?0:rem;
     end
     else begin
         div = div_u;
-        rem = rem_u;
+        rem = (rem_u==in_2_u)?0:rem_u;
     end
 end
 

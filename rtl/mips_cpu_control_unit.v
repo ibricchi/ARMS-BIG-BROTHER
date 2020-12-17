@@ -46,6 +46,7 @@ module control_unit(
     output logic      lotoreg,
 
     output logic      link,         //for the Return Address Register (linking instruction)
+    output logic      reg_link,
     output logic      loadimmed,    //an extra signal for LUI
 
     output logic[2:0] ExtendOp      //for the Signextending 8bits/16bits word
@@ -106,6 +107,7 @@ always_comb begin
         hitoreg    = 0;
         lotoreg    = 0;
         link       = 0;
+        reg_link   = 0;
         loadimmed  = 0;
         ExtendOp   = 3'b000;
     end
@@ -132,6 +134,7 @@ always_comb begin
         hitoreg    = 0;
         lotoreg    = 0;
         link       = 0;
+        reg_link   = 0;
         loadimmed  = 0;
     end
     else begin
@@ -178,6 +181,7 @@ always_comb begin
                 hitoreg    = fun == 6'b010000; // MFHI
                 lotoreg    = fun == 6'b010010; // MFLO
                 link       = fun == 6'b001001; // JALR
+                reg_link   = fun == 6'b001001; // JALR
                 loadimmed  = 0;  //we only use this signal when instruction is LUI
             end
             
@@ -205,6 +209,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
 
@@ -231,6 +236,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
             6'b001101: begin // ORI !TODO: not yet tested
@@ -256,6 +262,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
             6'b001010: begin // SLTI !TODO
@@ -281,6 +288,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
             6'b001011: begin // SLTIU !TODO
@@ -306,6 +314,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
             6'b001110: begin // XORI !TODO: not yet tested
@@ -331,6 +340,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
 
@@ -359,6 +369,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 1; //extra signal
 
             end 
@@ -388,6 +399,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
             6'b000101: begin // BNE
@@ -413,6 +425,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
 
@@ -440,6 +453,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
             6'b000110: begin // BLEZ !TODO
@@ -465,6 +479,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0; 
             end
             6'b000001: begin // BLTZ and OTHER_BRANCHZ 
@@ -521,6 +536,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
                 ExtendOp   = 3'b111;
             end
@@ -547,6 +563,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
                 ExtendOp   = 3'b110;
             end
@@ -573,6 +590,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
                 ExtendOp   = 3'b101;
             end
@@ -599,6 +617,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
                 ExtendOp   = 3'b100;
             end
@@ -625,6 +644,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
             6'b100010: begin // LWL !TODO
@@ -648,6 +668,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
                 ExtendOp   = 3'b001; //Tempory usage 
             end
@@ -672,6 +693,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
                 ExtendOp   = 3'b010; //Tempory usage 
             end
@@ -698,6 +720,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
             6'b101001: begin // SH
@@ -723,6 +746,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
             6'b101011: begin // SW
@@ -748,6 +772,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
 
@@ -775,6 +800,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 0;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
             6'b000011: begin // JAL 
@@ -801,6 +827,7 @@ always_comb begin
                 hitoreg    = 0;
                 lotoreg    = 0;
                 link       = 1;
+                reg_link   = 0;
                 loadimmed  = 0;
             end
         endcase

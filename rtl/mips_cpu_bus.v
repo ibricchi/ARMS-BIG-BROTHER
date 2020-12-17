@@ -24,8 +24,7 @@ end
 
 always_ff @(posedge clk) begin // on every clock cycle if waitrequest is low change state
     // debug code
-    $display("Instruction: %h", instr, " LWL_index: %h", LWL_index, " reg write_data is : %h", write_data, " address_internal is %h", address_internal[31:0]);
-    // $display("Instruction: ", instr, " PC: ", pc_out - 3217031168, " address: ", address, " readdata %b: %h > %h > %h > %h", address_internal[1:0], readdata, HalfRes, byteRes, write_data);
+    $display("Instruction: %h", instr, " PC: ", pc_out - 3217031168, " regsiter: %d", write_reg);
     if(!waitrequest) case(state)
         0: begin // HALT
             state <= 1;
@@ -76,7 +75,7 @@ pc pc_0(
 logic[3:0] ALUOp;
 logic[1:0] div_mult_op;
 logic[2:0] ExtendOp;
-logic bytewrite, halfwrite, ALUSrc, singed_imm, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, hitoreg, lotoreg, link, loadimmed;
+logic bytewrite, halfwrite, ALUSrc, singed_imm, jump, branch, regdst, memtoreg, regwrite, inwrite, pctoadd, regtojump, div_mult_en, div_mult_signed, hitoreg, lotoreg, link, reg_link, loadimmed;
 
 control_unit control_0(
     .opcode(instr[31:26]),
@@ -109,6 +108,7 @@ control_unit control_0(
     .hitoreg(hitoreg),
     .lotoreg(lotoreg),
     .link(link),
+    .reg_link(reg_link),
     .loadimmed(loadimmed),
     .ExtendOp(ExtendOp)
 );
@@ -126,7 +126,7 @@ logic[31:0] read_data1, read_data2;
 logic[4:0] write_reg;
 logic[31:0] write_data;
 logic branch_regwrite;
-assign write_reg = (regdst == 0) ? (link? 5'b11111:instr[20:16]) : instr[15:11];
+assign write_reg = (regdst == 0) ? ((link&!reg_link)? 5'b11111:instr[20:16]) : instr[15:11];
 
 register_file reg_file_0(
     .clk(clk),

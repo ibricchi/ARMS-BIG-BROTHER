@@ -414,7 +414,8 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
         break;
     }
 
-    if((comma_terminated | (comma_or_white_terminated && (it != end && *it != ' ')) && *it != ',') || (paren_terminated && *it != ')') || (!(comma_terminated || paren_terminated) && (it != end && *it != ' '))){ // check register has proper delimiter
+    if(((comma_terminated | (comma_or_white_terminated && (it != end && *it != ' '))) && *it != ',') || (paren_terminated && *it != ')') || (!(comma_terminated || paren_terminated || comma_or_white_terminated) && (it != end && *it != ' '))){ // check register has proper delimiter
+        
         string it_str = string() + *it;
         if(comma_terminated)
             errorMsg("Expected comma, found '" + it_str + "' instead.");

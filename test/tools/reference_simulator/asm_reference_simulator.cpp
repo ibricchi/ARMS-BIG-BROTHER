@@ -576,40 +576,33 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // reference simulator memory supports word rather than byte addressing
             uint32_t byteNr = (regs[sReg] + immediate) % 4;
-            uint32_t word, Byte0, Byte1, Byte2, Byte3 ; //Byte 3 is MSB
-            // allow roll-over to next word
+            uint32_t word, byte0, byte1, byte2, byte3; // Byte 3 is MSB
             word = memory[(regs[sReg] + immediate) / 4];
-
-            Byte0  = getByteFromWord(word, 0);
-            Byte1  = getByteFromWord(word, 1);
-            Byte2  = getByteFromWord(word, 2);
-            Byte3  = getByteFromWord(word, 3);
+            byte0 = getByteFromWord(word, 0);
+            byte1 = getByteFromWord(word, 1);
+            byte2 = getByteFromWord(word, 2);
+            byte3 = getByteFromWord(word, 3);
             switch (byteNr)
             {
             case 0:
-                
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte0, 0);
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte1, 1);
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte2, 2);
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte3, 3);
-
+                regs[tReg] = replaceByteInWord(regs[tReg], byte0, 3);
                 break;
             case 1:
-
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte1, 1);
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte2, 2);
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte3, 3);
-
+                regs[tReg] = replaceByteInWord(regs[tReg], byte0, 2);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte1, 3);
                 break;
             case 2:
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte2, 2);
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte3, 3);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte0, 1);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte1, 2);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte2, 3);
                 break;
             case 3:
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte3, 3);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte0, 0);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte1, 1);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte2, 2);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte3, 3);
                 break;
             }
-            
             pc++;
             break;
         }
@@ -619,39 +612,33 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // reference simulator memory supports word rather than byte addressing
             uint32_t byteNr = (regs[sReg] + immediate) % 4;
-            uint32_t word, Byte0, Byte1, Byte2, Byte3;
-            // allow roll-over to next word
+            uint32_t word, byte0, byte1, byte2, byte3;
             word = memory[(regs[sReg] + immediate) / 4];
-
-            Byte0  = getByteFromWord(word, 0);
-            Byte1  = getByteFromWord(word, 1);
-            Byte2  = getByteFromWord(word, 2);
-            Byte3  = getByteFromWord(word, 3);
+            byte0 = getByteFromWord(word, 0);
+            byte1 = getByteFromWord(word, 1);
+            byte2 = getByteFromWord(word, 2);
+            byte3 = getByteFromWord(word, 3);
             switch (byteNr)
             {
             case 0:
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte0, 0);
-
+                regs[tReg] = replaceByteInWord(regs[tReg], byte0, 0);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte1, 1);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte2, 2);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte3, 3);
                 break;
             case 1:
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte0, 0);
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte1, 1);
-
+                regs[tReg] = replaceByteInWord(regs[tReg], byte1, 0);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte2, 1);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte3, 2);
                 break;
             case 2:
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte0, 0);
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte1, 1);
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte2, 2);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte2, 0);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte3, 1);
                 break;
             case 3:
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte0, 0);
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte1, 1);
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte2, 2);
-                regs[tReg] = replaceByteInWord(regs[tReg], Byte3, 3);
+                regs[tReg] = replaceByteInWord(regs[tReg], byte3, 0);
                 break;
             }
-            // insert into lower bits of register
-
             pc++;
             break;
         }

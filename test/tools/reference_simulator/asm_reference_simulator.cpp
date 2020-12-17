@@ -191,8 +191,19 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             {
                 uint32_t sReg, tReg;
                 tie(ignore, sReg, tReg, ignore) = decodeArithmeticType(instruction);
-                // signed multiplication
-                lo = static_cast<int32_t>(regs[sReg]) * static_cast<int32_t>(regs[tReg]);
+                uint64_t result;
+                // if result negative
+                if (((regs[sReg] >> 31) && !(regs[tReg] >> 31)) || (!(regs[sReg] >> 31) && (regs[tReg] >> 31)))
+                {
+                    // signed multiplication
+                    result = static_cast<int32_t>(regs[sReg]) * static_cast<int32_t>(regs[tReg]);
+                }
+                else
+                {
+                    result = regs[sReg] * regs[tReg];
+                }
+                lo = (result << 32) >> 32; // lower 32 bits
+                hi = result >> 32;         // higher 32 bits
                 pc++;
                 break;
             }
@@ -200,7 +211,9 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             {
                 uint32_t sReg, tReg;
                 tie(ignore, sReg, tReg, ignore) = decodeArithmeticType(instruction);
-                lo = regs[sReg] * regs[tReg];
+                uint64_t result = regs[sReg] * regs[tReg];
+                lo = (result << 32) >> 32; // lower 32 bits
+                hi = result >> 32;         // higher 32 bits
                 pc++;
                 break;
             }

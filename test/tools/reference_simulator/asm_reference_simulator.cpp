@@ -512,8 +512,8 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // reference simulator memory supports word rather than byte addressing
-            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
-            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            uint32_t word = memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4]; // will be rounded down
+            uint32_t byteNr = (regs[sReg] + static_cast<int16_t>(immediate)) % 4;
             regs[tReg] = getByteFromWordSigned(word, byteNr);
             pc++;
             break;
@@ -523,8 +523,8 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // reference simulator memory supports word rather than byte addressing
-            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
-            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            uint32_t word = memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4]; // will be rounded down
+            uint32_t byteNr = (regs[sReg] + static_cast<int16_t>(immediate)) % 4;
             regs[tReg] = getByteFromWord(word, byteNr);
             pc++;
             break;
@@ -534,8 +534,8 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // reference simulator memory supports word rather than byte addressing
-            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
-            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            uint32_t word = memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4]; // will be rounded down
+            uint32_t byteNr = (regs[sReg] + static_cast<int16_t>(immediate)) % 4;
             assert(byteNr == 0 || byteNr == 2); // needs to be half-word alligned
             uint32_t lowerByte = getByteFromWord(word, byteNr);
             uint32_t higherByte = getByteFromWordSigned(word, byteNr + 1);
@@ -550,8 +550,8 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // reference simulator memory supports word rather than byte addressing
-            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
-            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            uint32_t word = memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4]; // will be rounded down
+            uint32_t byteNr = (regs[sReg] + static_cast<int16_t>(immediate)) % 4;
             assert(byteNr == 0 || byteNr == 2); // needs to be half-word alligned
             uint32_t lowerByte = getByteFromWord(word, byteNr);
             uint32_t higherByte = getByteFromWord(word, byteNr + 1);
@@ -574,9 +574,9 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // reference simulator memory supports word rather than byte addressing
-            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            uint32_t byteNr = (regs[sReg] + static_cast<int16_t>(immediate)) % 4;
             uint32_t word, byte0, byte1, byte2, byte3; // Byte 3 is MSB
-            word = memory[(regs[sReg] + immediate) / 4];
+            word = memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4];
             byte0 = getByteFromWord(word, 0);
             byte1 = getByteFromWord(word, 1);
             byte2 = getByteFromWord(word, 2);
@@ -610,9 +610,9 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // reference simulator memory supports word rather than byte addressing
-            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            uint32_t byteNr = (regs[sReg] + static_cast<int16_t>(immediate)) % 4;
             uint32_t word, byte0, byte1, byte2, byte3;
-            word = memory[(regs[sReg] + immediate) / 4];
+            word = memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4];
             byte0 = getByteFromWord(word, 0);
             byte1 = getByteFromWord(word, 1);
             byte2 = getByteFromWord(word, 2);
@@ -646,9 +646,9 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // word address must be divisble by 4
-            assert((regs[sReg] + immediate) % 4 == 0);
+            assert((regs[sReg] + static_cast<int16_t>(immediate)) % 4 == 0);
             // reference simulator memory supports word rather than byte addressing
-            regs[tReg] = memory[(regs[sReg] + immediate) / 4];
+            regs[tReg] = memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4];
             pc++;
             break;
         }
@@ -657,11 +657,11 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // reference simulator memory supports word rather than byte addressing
-            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
-            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            uint32_t word = memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4]; // will be rounded down
+            uint32_t byteNr = (regs[sReg] + static_cast<int16_t>(immediate)) % 4;
             uint32_t byte = getByteFromWord(regs[tReg], 0); // select least significant byte
             word = replaceByteInWord(word, byte, byteNr);
-            memory[(regs[sReg] + immediate) / 4] = word;
+            memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4] = word;
             pc++;
             break;
         }
@@ -670,8 +670,8 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // reference simulator memory supports word rather than byte addressing
-            uint32_t word = memory[(regs[sReg] + immediate) / 4]; // will be rounded down
-            uint32_t byteNr = (regs[sReg] + immediate) % 4;
+            uint32_t word = memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4]; // will be rounded down
+            uint32_t byteNr = (regs[sReg] + static_cast<int16_t>(immediate)) % 4;
             assert(byteNr == 0 || byteNr == 2); // needs to be half-word alligned
             // half word is least significant bytes
             uint32_t halfWord = regs[tReg];
@@ -679,7 +679,7 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t higherByte = getByteFromWord(halfWord, 1);
             word = replaceByteInWord(word, lowerByte, byteNr);
             word = replaceByteInWord(word, higherByte, byteNr + 1);
-            memory[(regs[sReg] + immediate) / 4] = word;
+            memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4] = word;
             pc++;
             break;
         }
@@ -688,9 +688,9 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
             // word address must be divisble by 4
-            assert((regs[sReg] + immediate) % 4 == 0);
+            assert((regs[sReg] + static_cast<int16_t>(immediate)) % 4 == 0);
             // reference simulator memory supports word rather than byte addressing
-            memory[(regs[sReg] + immediate) / 4] = regs[tReg];
+            memory[(regs[sReg] + static_cast<int16_t>(immediate)) / 4] = regs[tReg];
             pc++;
             break;
         }

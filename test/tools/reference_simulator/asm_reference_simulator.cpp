@@ -333,7 +333,8 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
         {
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
-            regs[tReg] = regs[sReg] + immediate;
+            int32_t signed_imm = ((int16_t)immediate);
+            regs[tReg] = regs[sReg] + ((uint32_t)signed_imm);
             pc++;
             break;
         }
@@ -366,7 +367,8 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
         {
             uint32_t tReg, sReg, immediate;
             tie(tReg, sReg, immediate) = decodeImmediateType(instruction);
-            regs[tReg] = (regs[sReg] < immediate) ? 1 : 0;
+            int32_t signed_imm = ((int16_t)immediate);
+            regs[tReg] = (regs[sReg] < ((uint32_t)signed_imm)) ? 1 : 0;
             pc++;
             break;
         }

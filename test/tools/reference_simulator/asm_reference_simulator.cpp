@@ -265,14 +265,14 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             }
             case 0b001001: // JALR
             {
-                uint32_t sReg;
-                tie(ignore, sReg, ignore, ignore) = decodeArithmeticType(instruction);
+                uint32_t dReg, sReg;
+                tie(dReg, sReg, ignore, ignore) = decodeArithmeticType(instruction);
                 simulateMIPSHelper(memory, pc + 1, regs, lo, hi, memInstructionStartIdx, true); // execute branch delay slot instruction
                 uint32_t prevPc = pc;
                 // MIPS supports byte addressing and reference simulator supports word addressing
                 pc = regs[sReg] / 4;
                 // address after branch delay slot (MIPS byte address rather than reference simulator word address)
-                regs[31] = (prevPc + 2) * 4;
+                regs[dReg] = (prevPc + 2) * 4;
                 break;
             }
             case 0b010000: // MFHI
@@ -470,11 +470,10 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             }
             case 0b10001: // BGEZAL
             {
-
+                // return address is the instruction after the branch delay slot
+                regs[31] = (pc + 1) * 4; // address after branch delay slot (MIPS byte address rather than reference simulator word address)
                 if (static_cast<int16_t>(regs[sReg]) >= 0)
                 {
-                    // return address is the instruction after the branch delay slot
-                    regs[31] = (pc + 1) * 4; // address after branch delay slot (MIPS byte address rather than reference simulator word address)
                     // Use signed immediates as relative branches could be negative
                     pc += (static_cast<int16_t>(immediate) << 2) / 4;
                 }
@@ -486,10 +485,10 @@ void simulateMIPSHelper(unordered_map<uint32_t, uint32_t> &memory, uint32_t pc, 
             }
             case 0b10000: // BLTZAL
             {
+                // return address is the instruction after the branch delay slot
+                regs[31] = (pc + 1) * 4; // address after branch delay slot (MIPS byte address rather than reference simulator word address)
                 if (static_cast<int16_t>(regs[sReg]) < 0)
                 {
-                    // return address is the instruction after the branch delay slot
-                    regs[31] = (pc + 1) * 4; // address after branch delay slot (MIPS byte address rather than reference simulator word address)
                     // Use signed immediates as relative branches could be negative
                     pc += (static_cast<int16_t>(immediate) << 2) / 4;
                 }

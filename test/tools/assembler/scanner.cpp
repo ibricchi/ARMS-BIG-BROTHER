@@ -143,7 +143,8 @@ uint32_t Scanner::const_line(string::iterator& it, string::iterator end, bool al
 
     it++;
     if(it == end) return stol(str_val); // if 1 digit then return digit, must be decimal as both bin and hex require at least 3 chars
-    
+
+    int mult = 1;
     int valBase = 0; // 0 is for dec, 1 for hex, 2 for bin
 
     if(str_val == "0"){ // check what the base of the number is dec, bin, or hex
@@ -163,6 +164,7 @@ uint32_t Scanner::const_line(string::iterator& it, string::iterator end, bool al
             return 0;
         }
     }
+    else if(str_val == "-") mult = -1;
 
     // if valid base is 0 then don't advance at begining otherwise skip of b or x character
     // iterate until end of line
@@ -430,7 +432,7 @@ uint8_t Scanner::read_reg(string::iterator& it, string::iterator end, bool comma
 // ensures nothing comes after field
 // warns if field is more than 16 bits but allows value in a truncated mannor
 uint16_t Scanner::read_imm(string::iterator& it, string::iterator end, bool paren_terminated){
-    if(!is_numeric(*it)){ // check if first character is number
+    if(!is_numeric(*it) && *it!='-'){ // check if first character is number
         errorMsg("Immediate parameter expects a constant.");
         return 0;
     }
@@ -444,20 +446,22 @@ uint16_t Scanner::read_imm(string::iterator& it, string::iterator end, bool pare
         else it++;
     }
     uint16_t imm_16 = imm_32;
-    if(imm_16 != imm_32){ // check that constant fits in 16 bits and warn otherwise
+    if((int16_t)imm_16 != (int32_t)imm_32){ // check that constant fits in 16 bits and warn otherwise
         warnMsg("Imediate constant is greater than 16bits");
     }
     return imm_32;
 }
 // identical to read_imm but ensures 5 bit constant, and doesn't check for delimiters
 uint8_t Scanner::read_as(string::iterator& it, string::iterator end){
-    if(!is_numeric(*it)){
+    if(!is_numeric(*it) && *it != '-'){
         errorMsg("'as' field expects a constant.");
         return 0;
     }
     uint32_t as_32 = const_line(it, end);
-    uint8_t as_5 = as_32 & 0b011111;
-    if(as_5 != as_32){
+    uint8_t as_8 = as_32;
+    uint8_t as_5 = as_8 & 0b011111;
+    
+    if((int8_t)as_8 != (int32_t)as_32 && (as_8<<3) != (as_5 << 3)){
         warnMsg("'as' field constant is greater than 5bits");
     }
     return as_5;
@@ -933,7 +937,7 @@ void Scanner::scanLine(string in){
             continue;
         }
         // if first thing is a constant
-        else if(str.size() == 0 && is_numeric(*it)){ // constants must begin with constant
+        else if(str.size() == 0 && (is_numeric(*it) || *it == '-')){ // constants must begin with constant
             tokens.push_back({"CONST", const_line(it, in.end()), line, memLine, ""});
             line++;
             memLine += 4;

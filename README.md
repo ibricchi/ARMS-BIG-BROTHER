@@ -8,4 +8,4 @@ Memory is not a part of the CPU itself, instead, the CPU uses a standard Avalon 
 
 Excluding the control unit, clock input, and reset input, the CPU diagram has the following structure:
 
-![ABB Chip Diagram](./rm_src/cpu_diagram.cpp)
+![ABB Chip Diagram](./rm_src/cpu_diagram.png)
